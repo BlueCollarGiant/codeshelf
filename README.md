@@ -99,9 +99,17 @@ Note: `repo` grants more access than CodeShelf uses — the fine-grained PAT is 
 
 ---
 
-## Project Status
+## Current Status
 
-This project is under active development. See [build-phases.md](docs/build-phases.md) for the current phase.
+| Phase | Status | What's built |
+|---|---|---|
+| Phase 1 | Done | Project structure, `.env.example`, README skeleton |
+| Phase 1.5 | Done | Design token system — `tokens.css`, palette, rationale |
+| Phase 2 | Done | Static Angular UI with fake repo fixture data |
+| Phase 3+ | Not yet built | Express backend, real GitHub data, AI analysis, write actions |
+
+**The UI you see now uses fixture data.** Real GitHub API integration begins in Phase 3.
+AI analysis (Phase 6) and visibility/deletion actions (Phase 7/7b) are not yet built.
 
 ---
 

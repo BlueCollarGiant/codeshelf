@@ -59,7 +59,7 @@ import { RouterLink } from '@angular/router';
   styles: [`
     .setup-page {
       padding: var(--space-8) var(--space-6);
-      max-width: 640px;
+      max-width: var(--layout-setup-max-width);
       margin: 0 auto;
       display: flex;
       flex-direction: column;
@@ -92,8 +92,8 @@ import { RouterLink } from '@angular/router';
       border-bottom: 1px solid var(--border-subtle);
     }
     .status-indicator {
-      width: 10px;
-      height: 10px;
+      width: var(--status-indicator-size);
+      height: var(--status-indicator-size);
       border-radius: 50%;
       flex-shrink: 0;
     }
@@ -104,7 +104,7 @@ import { RouterLink } from '@angular/router';
       font-size: var(--font-size-sm);
       font-weight: var(--font-weight-semibold);
       color: var(--text-primary);
-      min-width: 120px;
+      min-width: var(--status-label-min-width);
     }
     .status-value {
       font-size: var(--font-size-sm);
@@ -135,7 +135,7 @@ import { RouterLink } from '@angular/router';
       font-family: var(--font-family-mono);
       font-size: var(--font-size-sm);
       background: var(--bg-elevated);
-      padding: 2px 6px;
+      padding: var(--code-inline-padding);
       border-radius: var(--radius-sm);
       color: var(--color-blue-300);
     }

@@ -300,6 +300,17 @@
   --nav-item-padding-x: var(--space-3);
   --nav-item-padding-y: var(--space-2);
 
+  /* --- Layout --- */
+  --layout-repos-max-width:  960px;
+  --layout-setup-max-width:  640px;
+  --header-height:            56px;
+  --status-indicator-size:    10px;
+  --stat-card-min-width:      100px;
+  --controls-search-min-width: 200px;
+  --controls-sort-width:       180px;
+  --code-inline-padding:       2px 6px;
+  --status-label-min-width:    120px;
+
   /* --- Action controls bar (Make Private / Make Public / Delete toggle) --- */
   --action-bar-bg:      var(--bg-sidebar);
   --action-bar-border:  var(--border-subtle);

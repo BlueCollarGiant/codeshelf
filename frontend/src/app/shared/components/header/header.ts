@@ -22,7 +22,7 @@ import { RouterLink } from '@angular/router';
       align-items: center;
       justify-content: space-between;
       padding: 0 var(--space-6);
-      height: 56px;
+      height: var(--header-height);
       background: var(--bg-sidebar);
       border-bottom: 1px solid var(--border-subtle);
     }

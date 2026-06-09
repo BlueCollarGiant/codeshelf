@@ -121,7 +121,7 @@ type SortKey = 'updated' | 'stars' | 'forks' | 'name' | 'portfolio' | 'cleanup';
   styles: [`
     .repos-page {
       padding: var(--space-6);
-      max-width: 960px;
+      max-width: var(--layout-repos-max-width);
       margin: 0 auto;
       display: flex;
       flex-direction: column;
@@ -138,8 +138,8 @@ type SortKey = 'updated' | 'stars' | 'forks' | 'name' | 'portfolio' | 'cleanup';
       align-items: center;
       flex-wrap: wrap;
     }
-    .controls__search { flex: 1; min-width: 200px; }
-    .controls__sort { width: 180px; }
+    .controls__search { flex: 1; min-width: var(--controls-search-min-width); }
+    .controls__sort { width: var(--controls-sort-width); }
     .controls__analyse { margin-left: auto; white-space: nowrap; }
     .repos-page__section { display: flex; flex-direction: column; gap: var(--space-3); }
     .repos-page__section-title {

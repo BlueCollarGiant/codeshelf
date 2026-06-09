@@ -18,7 +18,7 @@ import { Component, ChangeDetectionStrategy, input } from '@angular/core';
       border: 1px solid var(--stat-card-border);
       border-radius: var(--stat-card-radius);
       padding: var(--stat-card-padding);
-      min-width: 100px;
+      min-width: var(--stat-card-min-width);
     }
     .stat-card__value {
       font-size: var(--stat-number-size);
