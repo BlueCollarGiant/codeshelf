@@ -11,6 +11,7 @@
 
 html, body {
   height: 100%;
+  overflow-x: hidden;
   background-color: var(--bg-app);
   color: var(--text-primary);
   font-family: var(--font-family-base);
