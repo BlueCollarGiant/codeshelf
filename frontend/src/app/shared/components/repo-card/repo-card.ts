@@ -22,7 +22,7 @@ import { RelativeDatePipe } from '../../pipes/relative-date.pipe';
             (change)="deleteChange.emit($event.checked)"
             [aria-label]="'Mark ' + repo().name + ' for deletion'"
           />
-          <span class="repo-card__rail-delete-label">Delete</span>
+          <span class="repo-card__rail-delete-label">Delete<br>live</span>
         } @else {
           <mat-checkbox
             [checked]="selected()"
