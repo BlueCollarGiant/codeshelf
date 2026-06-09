@@ -8,9 +8,11 @@ import { SafeGitHubRepo } from '../../core/models/github-repo.model';
 import { RepoScore } from '../../core/models/repo-score.model';
 import { DashboardStats } from '../../core/models/dashboard-stats.model';
 import { RepoSuggestionType } from '../../core/models/repo-suggestion.model';
+import { VisibilityAction, VisibilityResult } from '../../core/models/action-result.model';
 import { scoreRepo } from '../../core/utils/repo-score.utils';
 import { RepoApiService } from '../../core/services/repo-api.service';
 import { AiApiService } from '../../core/services/ai-api.service';
+import { RepoActionsService } from '../../core/services/repo-actions.service';
 import { RepoAnalysisService, SuggestionFilter } from '../../core/services/repo-analysis.service';
 import { RepoAiResult } from '../../core/models/repo-ai-result.model';
 import { RepoCardComponent } from '../../shared/components/repo-card/repo-card';
@@ -18,10 +20,13 @@ import { StatCardComponent } from '../../shared/components/stat-card/stat-card';
 import { LoadingStateComponent } from '../../shared/components/loading-state/loading-state';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state';
 import { ErrorStateComponent } from '../../shared/components/error-state/error-state';
+import { WarningScreenComponent } from './warning-screen/warning-screen';
+import { ResultScreenComponent } from './result-screen/result-screen';
 
 type SortKey = 'updated' | 'stars' | 'forks' | 'name' | 'portfolio' | 'cleanup';
 type LoadState = 'loading' | 'loaded' | 'error-offline' | 'error-token' | 'error-ratelimit';
-type AiState  = 'idle' | 'loading' | 'done' | 'error';
+type AiState   = 'idle' | 'loading' | 'done' | 'error';
+type ActionState = 'idle' | 'warning' | 'executing' | 'results';
 
 @Component({
   selector: 'app-repos',
@@ -36,6 +41,8 @@ type AiState  = 'idle' | 'loading' | 'done' | 'error';
     LoadingStateComponent,
     EmptyStateComponent,
     ErrorStateComponent,
+    WarningScreenComponent,
+    ResultScreenComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -103,6 +110,22 @@ type AiState  = 'idle' | 'loading' | 'done' | 'error';
         <p class="ai-advisory ai-advisory--error">AI analysis failed. Check your AI_PROVIDER setting in .env.</p>
       }
 
+      @if (selectedIds().size > 0) {
+        <div class="action-bar">
+          <span class="action-bar__label">{{ selectedIds().size }} repo{{ selectedIds().size === 1 ? '' : 's' }} selected</span>
+          <div class="action-bar__buttons">
+            <button mat-stroked-button (click)="initiateAction('private')"
+              [disabled]="actionState() === 'executing'">
+              <mat-icon>lock</mat-icon> Make Private
+            </button>
+            <button mat-flat-button color="warn" (click)="initiateAction('public')"
+              [disabled]="actionState() === 'executing'">
+              <mat-icon>public</mat-icon> Make Public
+            </button>
+          </div>
+        </div>
+      }
+
       @switch (loadState()) {
         @case ('loading') {
           <app-loading-state />
@@ -166,6 +189,22 @@ type AiState  = 'idle' | 'loading' | 'done' | 'error';
         }
       }
     </div>
+
+    @if (actionState() === 'warning') {
+      <app-warning-screen
+        [repos]="selectedRepos()"
+        [action]="pendingAction()!"
+        (cancel)="cancelAction()"
+        (confirm)="executeAction()"
+      />
+    }
+
+    @if (actionState() === 'results') {
+      <app-result-screen
+        [results]="actionResults()"
+        (done)="closeResults()"
+      />
+    }
   `,
   styles: [`
     .repos-page {
@@ -182,6 +221,18 @@ type AiState  = 'idle' | 'loading' | 'done' | 'error';
     .controls__sort   { width: var(--controls-sort-width); }
     .controls__filter { width: var(--controls-sort-width); }
     .controls__analyse { margin-left: auto; white-space: nowrap; }
+    .action-bar {
+      display: flex;
+      align-items: center;
+      gap: var(--space-4);
+      padding: var(--space-3) var(--space-5);
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      flex-wrap: wrap;
+    }
+    .action-bar__label { font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); color: var(--text-primary); flex: 1; }
+    .action-bar__buttons { display: flex; gap: var(--space-3); }
     .repos-page__section { display: flex; flex-direction: column; gap: var(--space-3); }
     .repos-page__section-title {
       font-size: var(--font-size-xl);
@@ -206,18 +257,22 @@ type AiState  = 'idle' | 'loading' | 'done' | 'error';
   `]
 })
 export class ReposComponent implements OnInit {
-  private readonly api    = inject(RepoApiService);
-  private readonly aiApi  = inject(AiApiService);
-  readonly analysis       = inject(RepoAnalysisService);
+  private readonly api     = inject(RepoApiService);
+  private readonly aiApi   = inject(AiApiService);
+  private readonly actions = inject(RepoActionsService);
+  readonly analysis        = inject(RepoAnalysisService);
 
   readonly loadState        = signal<LoadState>('loading');
   readonly aiState          = signal<AiState>('idle');
+  readonly actionState      = signal<ActionState>('idle');
   readonly repos            = signal<SafeGitHubRepo[]>([]);
   readonly aiResults        = signal<Record<number, RepoAiResult>>({});
+  readonly actionResults    = signal<VisibilityResult[]>([]);
   readonly selectedIds      = signal<Set<number>>(new Set());
   readonly searchQuery      = signal('');
   readonly sortKey          = signal<SortKey>('updated');
   readonly suggestionFilter = signal<SuggestionFilter>('all');
+  readonly pendingAction    = signal<VisibilityAction | null>(null);
 
   readonly scoreMap = computed<Record<number, RepoScore>>(() => {
     const map: Record<number, RepoScore> = {};
@@ -243,6 +298,10 @@ export class ReposComponent implements OnInit {
       }).length,
     };
   });
+
+  readonly selectedRepos = computed<SafeGitHubRepo[]>(() =>
+    this.repos().filter(r => this.selectedIds().has(r.id))
+  );
 
   private readonly filteredAndSorted = computed<SafeGitHubRepo[]>(() => {
     const q      = this.searchQuery().toLowerCase().trim();
@@ -319,6 +378,48 @@ export class ReposComponent implements OnInit {
     } catch {
       this.aiState.set('error');
     }
+  }
+
+  initiateAction(action: VisibilityAction): void {
+    this.pendingAction.set(action);
+    this.actionState.set('warning');
+  }
+
+  cancelAction(): void {
+    this.pendingAction.set(null);
+    this.actionState.set('idle');
+  }
+
+  async executeAction(): Promise<void> {
+    const action = this.pendingAction();
+    if (!action) return;
+
+    const requests = this.selectedRepos().map(r => ({
+      fullName: r.fullName,
+      visibility: action,
+    }));
+
+    this.actionState.set('executing');
+    try {
+      const { results } = await this.actions.setVisibility(requests);
+      this.actionResults.set(results);
+    } catch {
+      const fallback: VisibilityResult[] = requests.map(r => ({
+        fullName: r.fullName,
+        visibility: action,
+        success: false,
+        message: 'Backend unreachable or returned an unexpected error.',
+      }));
+      this.actionResults.set(fallback);
+    }
+    this.actionState.set('results');
+  }
+
+  async closeResults(): Promise<void> {
+    this.actionState.set('idle');
+    this.pendingAction.set(null);
+    this.selectedIds.set(new Set());
+    await this.refresh();
   }
 
   selectAll(): void   { this.selectedIds.set(new Set(this.filteredAndSorted().map(r => r.id))); }

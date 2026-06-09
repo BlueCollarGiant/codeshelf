@@ -78,3 +78,19 @@ export async function getAllRepos() {
 
   return all;
 }
+
+export async function setRepoVisibility(fullName, visibility) {
+  const token = getToken();
+  const res = await fetch(`${GITHUB_API}/repos/${fullName}`, {
+    method: 'PATCH',
+    headers: { ...authHeaders(token), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ private: visibility === 'private' }),
+  });
+
+  if (res.status === 401) throw { status: 401, message: 'GitHub token is invalid or expired.' };
+  if (res.status === 403) throw { status: 403, message: `Insufficient token scope to change visibility of ${fullName}.` };
+  if (res.status === 404) throw { status: 404, message: `Repository ${fullName} not found or not accessible.` };
+  if (!res.ok) throw { status: res.status, message: `Failed to update ${fullName} (${res.status}).` };
+
+  return true;
+}
