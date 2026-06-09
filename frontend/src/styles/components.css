@@ -97,6 +97,21 @@
   background: color-mix(in srgb, var(--color-portfolio-bg) 45%, var(--bg-inset));
 }
 
+.score-tile--cleanup {
+  border-color: color-mix(in srgb, var(--color-danger) 35%, var(--border-subtle));
+  background: color-mix(in srgb, var(--color-danger-bg) 35%, var(--bg-inset));
+}
+
+.score-tile--activity {
+  border-color: color-mix(in srgb, var(--color-success) 35%, var(--border-subtle));
+  background: color-mix(in srgb, var(--color-success-bg) 35%, var(--bg-inset));
+}
+
+.score-tile--completeness {
+  border-color: color-mix(in srgb, var(--color-warning) 35%, var(--border-subtle));
+  background: color-mix(in srgb, var(--color-warning-bg) 35%, var(--bg-inset));
+}
+
 .score-tile__label {
   color: var(--text-muted);
   font-size: var(--font-size-xs);

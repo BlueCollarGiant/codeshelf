@@ -62,7 +62,10 @@ import { RelativeDatePipe } from '../../pipes/relative-date.pipe';
             </span>
           }
           @if (repo().language) {
-            <span class="repo-card__meta-item">{{ repo().language }}</span>
+            <span class="repo-card__meta-item repo-card__meta-item--lang">{{ repo().language }}</span>
+          }
+          @for (topic of repo().topics; track topic) {
+            <span class="repo-card__meta-item repo-card__meta-item--topic">{{ topic }}</span>
           }
           <span class="repo-card__meta-item">Stars {{ repo().stargazersCount }}</span>
           <span class="repo-card__meta-item">Forks {{ repo().forksCount }}</span>
@@ -104,9 +107,17 @@ import { RelativeDatePipe } from '../../pipes/relative-date.pipe';
             <span class="score-tile__label">Portfolio</span>
             <span class="score-tile__value">{{ s.portfolioScore }}</span>
           </div>
-          <div class="score-tile">
+          <div class="score-tile score-tile--cleanup">
             <span class="score-tile__label">Cleanup</span>
             <span class="score-tile__value">{{ s.cleanupScore }}</span>
+          </div>
+          <div class="score-tile score-tile--activity">
+            <span class="score-tile__label">Activity</span>
+            <span class="score-tile__value">{{ s.activityScore }}</span>
+          </div>
+          <div class="score-tile score-tile--completeness">
+            <span class="score-tile__label">Complete</span>
+            <span class="score-tile__value">{{ s.completenessScore }}</span>
           </div>
         </div>
       }
@@ -215,6 +226,8 @@ import { RelativeDatePipe } from '../../pipes/relative-date.pipe';
       background: color-mix(in srgb, var(--bg-inset) 65%, transparent);
     }
     .repo-card__meta-item--type { font-weight: var(--font-weight-semibold); }
+    .repo-card__meta-item--lang { font-weight: var(--font-weight-medium); color: var(--text-secondary); }
+    .repo-card__meta-item--topic { color: var(--color-primary); border-color: color-mix(in srgb, var(--color-primary) 30%, transparent); background: color-mix(in srgb, var(--color-primary) 6%, transparent); }
     .type--profile   { color: var(--color-primary);    border-color: var(--color-primary);    background: color-mix(in srgb, var(--color-primary) 8%, transparent); }
     .type--portfolio { color: var(--color-success-fg); border-color: var(--color-success);    background: color-mix(in srgb, var(--color-success) 8%, transparent); }
     .type--active    { color: var(--color-success-fg); border-color: var(--color-success);    background: color-mix(in srgb, var(--color-success) 8%, transparent); }
@@ -232,9 +245,10 @@ import { RelativeDatePipe } from '../../pipes/relative-date.pipe';
     }
     .repo-card__scores {
       display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: var(--space-2);
       min-width: var(--repo-score-panel-width);
-      align-content: center;
+      align-content: start;
     }
     .dismiss-btn {
       margin-left: auto;
@@ -287,7 +301,6 @@ import { RelativeDatePipe } from '../../pipes/relative-date.pipe';
       }
       .repo-card__scores {
         grid-column: 2;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
         min-width: 0;
       }
       .repo-card__header {
