@@ -67,12 +67,14 @@ import { RelativeDatePipe } from '../../pipes/relative-date.pipe';
           <div class="repo-card__suggestions">
             <app-suggestion-badge [suggestions]="s.suggestions" />
             @if (!dismissed()) {
-              <button mat-icon-button class="dismiss-btn" title="Dismiss suggestions for this repo" (click)="dismiss.emit()">
-                <span class="dismiss-btn__glyph" aria-hidden="true">&times;</span>
-                <span class="sr-only">Dismiss suggestions</span>
+              <button class="dismiss-btn" title="Dismiss suggestions" aria-label="Dismiss suggestions" (click)="dismiss.emit()">
+                <svg class="dismiss-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                  <line x1="4" y1="4" x2="12" y2="12" />
+                  <line x1="12" y1="4" x2="4" y2="12" />
+                </svg>
               </button>
             } @else {
-              <button mat-button class="restore-btn" (click)="restore.emit()">Restore</button>
+              <button class="restore-btn" (click)="restore.emit()">Restore</button>
             }
           </div>
         }
@@ -220,19 +222,28 @@ import { RelativeDatePipe } from '../../pipes/relative-date.pipe';
     }
     .dismiss-btn {
       margin-left: auto;
-      width: var(--space-8);
-      height: var(--space-8);
-      line-height: 1;
-      color: var(--text-muted);
-    }
-    .dismiss-btn:hover { color: var(--text-primary); }
-    .dismiss-btn__glyph {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      font-size: var(--font-size-lg);
-      font-weight: var(--font-weight-normal);
-      line-height: 1;
+      width: 24px;
+      height: 24px;
+      border-radius: var(--radius-sm);
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 0;
+      transition: color var(--duration-fast) var(--ease-default),
+                  background var(--duration-fast) var(--ease-default);
+    }
+    .dismiss-btn:hover {
+      color: var(--text-primary);
+      background: var(--bg-elevated);
+    }
+    .dismiss-icon {
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0;
     }
     .restore-btn {
       margin-left: auto;
