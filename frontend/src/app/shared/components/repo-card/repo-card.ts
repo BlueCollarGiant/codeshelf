@@ -74,29 +74,9 @@ import { RelativeDatePipe } from '../../pipes/relative-date.pipe';
         </div>
 
         @if (score(); as s) {
-          @if (!isDismissed()) {
-            <div class="repo-card__suggestions">
-              <app-suggestion-badge [suggestions]="s.suggestions" />
-              <button class="dismiss-btn" title="Dismiss suggestions" aria-label="Dismiss suggestions" (click)="onDismiss()">
-                <svg class="dismiss-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/>
-                  <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/>
-                  <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/>
-                  <line x1="2" y1="2" x2="22" y2="22"/>
-                </svg>
-              </button>
-            </div>
-          } @else {
-            <div class="repo-card__dismissed">
-              <span class="dismissed-label">Suggestions hidden</span>
-              <button class="restore-btn" (click)="onRestore()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="restore-icon" aria-hidden="true">
-                  <path d="M2.5 2v6h6"/><path d="M2.66 15.57a10 10 0 1 0 .57-8.38"/>
-                </svg>
-                Restore
-              </button>
-            </div>
-          }
+          <div class="repo-card__suggestions">
+            <app-suggestion-badge [suggestions]="s.suggestions" />
+          </div>
         }
 
         @if (aiResult(); as ai) {
@@ -106,8 +86,27 @@ import { RelativeDatePipe } from '../../pipes/relative-date.pipe';
               <span class="chip chip--ai">Prof. {{ ai.professionalismRating }}</span>
               @if (ai.suggestDeletion)    { <span class="chip chip--danger">AI: consider deleting</span> }
               @if (ai.suggestMakePrivate) { <span class="chip chip--warn">AI: consider private</span> }
+              <button class="ai-toggle-btn"
+                (click)="isDismissed() ? onRestore() : onDismiss()"
+                [title]="isDismissed() ? 'Show AI analysis' : 'Hide AI analysis'"
+                [attr.aria-label]="(isDismissed() ? 'Show' : 'Hide') + ' AI analysis for ' + repo().name">
+                @if (isDismissed()) {
+                  <svg class="ai-toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/>
+                    <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/>
+                    <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/>
+                    <line x1="2" y1="2" x2="22" y2="22"/>
+                  </svg>
+                } @else {
+                  <svg class="ai-toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/>
+                  </svg>
+                }
+              </button>
             </div>
-            <p class="ai-summary">{{ ai.summary }}</p>
+            @if (!isDismissed()) {
+              <p class="ai-summary">{{ ai.summary }}</p>
+            }
           </div>
         }
       </div>
@@ -249,59 +248,25 @@ import { RelativeDatePipe } from '../../pipes/relative-date.pipe';
       min-width: var(--repo-score-panel-width);
       align-content: start;
     }
-    .dismiss-btn {
+    .ai-toggle-btn {
       margin-left: auto;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 24px;
-      height: 24px;
+      width: 26px;
+      height: 26px;
       border-radius: var(--radius-sm);
       border: none;
       background: transparent;
       color: var(--text-muted);
       cursor: pointer;
       padding: 0;
+      flex-shrink: 0;
       transition: color var(--duration-fast) var(--ease-default),
                   background var(--duration-fast) var(--ease-default);
     }
-    .dismiss-btn:hover {
-      color: var(--text-primary);
-      background: var(--bg-elevated);
-    }
-    .dismiss-icon {
-      width: 16px;
-      height: 16px;
-      flex-shrink: 0;
-    }
-    .repo-card__dismissed {
-      display: flex;
-      align-items: center;
-      gap: var(--space-3);
-      padding: var(--space-1) 0;
-    }
-    .dismissed-label {
-      font-size: var(--font-size-xs);
-      color: var(--text-muted);
-      font-style: italic;
-    }
-    .restore-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: var(--space-1);
-      margin-left: auto;
-      font-size: var(--font-size-xs);
-      color: var(--text-muted);
-      background: transparent;
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-full);
-      padding: var(--space-1) var(--space-2);
-      cursor: pointer;
-      transition: color var(--duration-fast) var(--ease-default),
-                  border-color var(--duration-fast) var(--ease-default);
-    }
-    .restore-btn:hover { color: var(--text-primary); border-color: var(--color-primary); }
-    .restore-icon { width: 12px; height: 12px; flex-shrink: 0; }
+    .ai-toggle-btn:hover { color: var(--text-primary); background: var(--bg-elevated); }
+    .ai-toggle-icon { width: 16px; height: 16px; flex-shrink: 0; }
     .repo-card__ai {
       display: flex;
       flex-direction: column;
