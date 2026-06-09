@@ -4,6 +4,7 @@ import cors from 'cors';
 import { errorHandler } from './middleware/errorHandler.js';
 import healthRoutes from './routes/health.routes.js';
 import githubRoutes from './routes/github.routes.js';
+import aiRoutes from './routes/ai.routes.js';
 
 const app = express();
 
@@ -14,6 +15,7 @@ app.use(express.json());
 
 app.use('/api', healthRoutes);
 app.use('/api/github', githubRoutes);
+app.use('/api/ai', aiRoutes);
 
 app.use(errorHandler);
 

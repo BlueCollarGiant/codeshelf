@@ -5,6 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { SafeGitHubRepo } from '../../../core/models/github-repo.model';
 import { RepoScore } from '../../../core/models/repo-score.model';
+import { RepoAiResult } from '../../../core/models/repo-ai-result.model';
 import { SuggestionBadgeComponent } from '../suggestion-badge/suggestion-badge';
 import { RelativeDatePipe } from '../../pipes/relative-date.pipe';
 
@@ -67,6 +68,18 @@ import { RelativeDatePipe } from '../../pipes/relative-date.pipe';
           <div class="repo-card__scores">
             <span class="chip">Portfolio {{ s.portfolioScore }}</span>
             <span class="chip">Cleanup {{ s.cleanupScore }}</span>
+          </div>
+        }
+
+        @if (aiResult(); as ai) {
+          <div class="repo-card__ai">
+            <div class="ai-scores">
+              <span class="chip chip--ai">Skill {{ ai.skillRating }}</span>
+              <span class="chip chip--ai">Prof. {{ ai.professionalismRating }}</span>
+              @if (ai.suggestDeletion)    { <span class="chip chip--danger">AI: consider deleting</span> }
+              @if (ai.suggestMakePrivate) { <span class="chip chip--warn">AI: consider private</span> }
+            </div>
+            <p class="ai-summary">{{ ai.summary }}</p>
           </div>
         }
       </div>
@@ -189,11 +202,29 @@ import { RelativeDatePipe } from '../../pipes/relative-date.pipe';
       font-size: var(--font-size-xs);
       color: var(--text-muted);
     }
+    .repo-card__ai {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-1);
+      padding-top: var(--space-2);
+      border-top: 1px solid var(--border-subtle);
+    }
+    .ai-scores { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+    .chip--ai   { background: var(--color-info-bg);    color: var(--color-info-fg); }
+    .chip--danger { background: var(--color-danger-bg); color: var(--color-danger-fg); }
+    .chip--warn   { background: var(--color-warning-bg); color: var(--color-warning-fg); }
+    .ai-summary {
+      font-size: var(--font-size-xs);
+      color: var(--text-muted);
+      line-height: var(--leading-relaxed);
+      font-style: italic;
+    }
   `]
 })
 export class RepoCardComponent {
   repo            = input.required<SafeGitHubRepo>();
   score           = input<RepoScore | null>(null);
+  aiResult        = input<RepoAiResult | null>(null);
   selected        = input<boolean>(false);
   dismissed       = input<boolean>(false);
   selectionChange = output<boolean>();

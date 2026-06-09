@@ -3,6 +3,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
 import { RouterLink } from '@angular/router';
 import { RepoApiService } from '../../core/services/repo-api.service';
+import { AiApiService, AiProviderStatus } from '../../core/services/ai-api.service';
 import { GitHubStatus } from '../../core/models/github-status.model';
 import { GitHubUser } from '../../core/models/github-user.model';
 
@@ -37,9 +38,9 @@ type StatusState = 'loading' | 'ok' | 'error' | 'unknown';
         }
 
         <div class="status-row">
-          <span class="status-indicator status-indicator--unknown"></span>
+          <span class="status-indicator" [class]="aiIndicatorClass()"></span>
           <span class="status-label">AI Provider</span>
-          <span class="status-value">Not configured — optional for Phase 6+</span>
+          <span class="status-value">{{ aiStatusText() }}</span>
         </div>
 
         @if (status()?.rateLimitRemaining !== null && status()?.tokenValid) {
@@ -167,15 +168,30 @@ type StatusState = 'loading' | 'ok' | 'error' | 'unknown';
   `]
 })
 export class SetupComponent implements OnInit {
-  private readonly api = inject(RepoApiService);
+  private readonly api   = inject(RepoApiService);
+  private readonly aiApi = inject(AiApiService);
 
-  readonly status = signal<GitHubStatus | null>(null);
-  readonly user = signal<GitHubUser | null>(null);
-  readonly tokenState = signal<StatusState>('loading');
+  readonly status      = signal<GitHubStatus | null>(null);
+  readonly user        = signal<GitHubUser | null>(null);
+  readonly aiProvider  = signal<AiProviderStatus | null>(null);
+  readonly tokenState  = signal<StatusState>('loading');
 
-  readonly tokenIndicatorClass = () => {
-    const state = this.tokenState();
-    return `status-indicator status-indicator--${state}`;
+  readonly tokenIndicatorClass = () => `status-indicator status-indicator--${this.tokenState()}`;
+
+  readonly aiIndicatorClass = () => {
+    const ai = this.aiProvider();
+    if (!ai) return 'status-indicator status-indicator--loading';
+    if (ai.provider === 'none') return 'status-indicator status-indicator--unknown';
+    return ai.configured ? 'status-indicator status-indicator--ok' : 'status-indicator status-indicator--error';
+  };
+
+  readonly aiStatusText = () => {
+    const ai = this.aiProvider();
+    if (!ai) return 'Checking…';
+    if (ai.provider === 'none' || ai.provider === 'mock' && !ai.configured) return 'Not configured — set AI_PROVIDER in .env (optional)';
+    if (!ai.configured) return `${ai.provider} selected but API key missing — add key to .env`;
+    if (ai.provider === 'mock') return 'Mock provider active (no API key needed)';
+    return `${ai.provider} configured`;
   };
 
   readonly tokenStatusText = () => {
@@ -189,17 +205,28 @@ export class SetupComponent implements OnInit {
   };
 
   async ngOnInit(): Promise<void> {
-    try {
-      const s = await this.api.getStatus();
-      this.status.set(s);
-      this.tokenState.set(s.tokenValid ? 'ok' : s.tokenPresent ? 'error' : 'error');
+    // Fetch token status and AI status in parallel
+    const [tokenResult, aiResult] = await Promise.allSettled([
+      this.api.getStatus(),
+      this.aiApi.getStatus(),
+    ]);
 
+    if (tokenResult.status === 'fulfilled') {
+      const s = tokenResult.value;
+      this.status.set(s);
+      this.tokenState.set(s.tokenValid ? 'ok' : 'error');
       if (s.tokenValid) {
-        const u = await this.api.getUser();
-        this.user.set(u);
+        const u = await this.api.getUser().catch(() => null);
+        if (u) this.user.set(u);
       }
-    } catch {
+    } else {
       this.tokenState.set('error');
+    }
+
+    if (aiResult.status === 'fulfilled') {
+      this.aiProvider.set(aiResult.value);
+    } else {
+      this.aiProvider.set({ provider: 'unknown', configured: false });
     }
   }
 }

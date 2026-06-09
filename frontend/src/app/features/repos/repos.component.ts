@@ -10,7 +10,9 @@ import { DashboardStats } from '../../core/models/dashboard-stats.model';
 import { RepoSuggestionType } from '../../core/models/repo-suggestion.model';
 import { scoreRepo } from '../../core/utils/repo-score.utils';
 import { RepoApiService } from '../../core/services/repo-api.service';
+import { AiApiService } from '../../core/services/ai-api.service';
 import { RepoAnalysisService, SuggestionFilter } from '../../core/services/repo-analysis.service';
+import { RepoAiResult } from '../../core/models/repo-ai-result.model';
 import { RepoCardComponent } from '../../shared/components/repo-card/repo-card';
 import { StatCardComponent } from '../../shared/components/stat-card/stat-card';
 import { LoadingStateComponent } from '../../shared/components/loading-state/loading-state';
@@ -19,6 +21,7 @@ import { ErrorStateComponent } from '../../shared/components/error-state/error-s
 
 type SortKey = 'updated' | 'stars' | 'forks' | 'name' | 'portfolio' | 'cleanup';
 type LoadState = 'loading' | 'loaded' | 'error-offline' | 'error-token' | 'error-ratelimit';
+type AiState  = 'idle' | 'loading' | 'done' | 'error';
 
 @Component({
   selector: 'app-repos',
@@ -84,10 +87,21 @@ type LoadState = 'loading' | 'loaded' | 'error-offline' | 'error-token' | 'error
         <button mat-stroked-button (click)="refresh()" [disabled]="loadState() === 'loading'">
           <mat-icon>refresh</mat-icon>
         </button>
-        <button mat-flat-button color="primary" class="controls__analyse" disabled>
-          Analyse Public Repos
+        <button mat-flat-button color="primary" class="controls__analyse"
+          [disabled]="aiState() === 'loading' || loadState() !== 'loaded'"
+          (click)="analysePublicRepos()">
+          @if (aiState() === 'loading') { Analysing… } @else { Analyse Public Repos }
         </button>
       </section>
+
+      @if (aiState() === 'done') {
+        <p class="ai-advisory">
+          AI analysis is advisory only. Ratings and suggestions are guides — you make all final decisions.
+        </p>
+      }
+      @if (aiState() === 'error') {
+        <p class="ai-advisory ai-advisory--error">AI analysis failed. Check your AI_PROVIDER setting in .env.</p>
+      }
 
       @switch (loadState()) {
         @case ('loading') {
@@ -115,6 +129,7 @@ type LoadState = 'loading' | 'loaded' | 'error-offline' | 'error-token' | 'error
                   <app-repo-card
                     [repo]="repo"
                     [score]="scoreMap()[repo.id] ?? null"
+                    [aiResult]="aiResults()[repo.id] ?? null"
                     [selected]="selectedIds().has(repo.id)"
                     [dismissed]="analysis.dismissed().has(repo.id)"
                     (selectionChange)="toggleSelection(repo.id, $event)"
@@ -178,17 +193,30 @@ type LoadState = 'loading' | 'loaded' | 'error-offline' | 'error-token' | 'error
     }
     .repos-page__count { font-size: var(--font-size-sm); color: var(--text-muted); font-weight: var(--font-weight-normal); }
     .repos-page__list { display: flex; flex-direction: column; gap: var(--space-3); }
+    .ai-advisory {
+      font-size: var(--font-size-sm);
+      color: var(--text-muted);
+      text-align: center;
+      padding: var(--space-2) var(--space-4);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      background: var(--bg-elevated);
+    }
+    .ai-advisory--error { color: var(--color-danger-fg); border-color: var(--color-danger); background: var(--color-danger-bg); }
   `]
 })
 export class ReposComponent implements OnInit {
-  private readonly api = inject(RepoApiService);
-  readonly analysis    = inject(RepoAnalysisService);
+  private readonly api    = inject(RepoApiService);
+  private readonly aiApi  = inject(AiApiService);
+  readonly analysis       = inject(RepoAnalysisService);
 
-  readonly loadState      = signal<LoadState>('loading');
-  readonly repos          = signal<SafeGitHubRepo[]>([]);
-  readonly selectedIds    = signal<Set<number>>(new Set());
-  readonly searchQuery    = signal('');
-  readonly sortKey        = signal<SortKey>('updated');
+  readonly loadState        = signal<LoadState>('loading');
+  readonly aiState          = signal<AiState>('idle');
+  readonly repos            = signal<SafeGitHubRepo[]>([]);
+  readonly aiResults        = signal<Record<number, RepoAiResult>>({});
+  readonly selectedIds      = signal<Set<number>>(new Set());
+  readonly searchQuery      = signal('');
+  readonly sortKey          = signal<SortKey>('updated');
   readonly suggestionFilter = signal<SuggestionFilter>('all');
 
   readonly scoreMap = computed<Record<number, RepoScore>>(() => {
@@ -276,6 +304,21 @@ export class ReposComponent implements OnInit {
       if (checked) next.add(id); else next.delete(id);
       return next;
     });
+  }
+
+  async analysePublicRepos(): Promise<void> {
+    const publicRepos = this.repos().filter(r => !r.private);
+    if (publicRepos.length === 0) return;
+    this.aiState.set('loading');
+    try {
+      const { results } = await this.aiApi.analyzeRepos(publicRepos);
+      const map: Record<number, RepoAiResult> = {};
+      for (const r of results) map[r.repoId] = r;
+      this.aiResults.set(map);
+      this.aiState.set('done');
+    } catch {
+      this.aiState.set('error');
+    }
   }
 
   selectAll(): void   { this.selectedIds.set(new Set(this.filteredAndSorted().map(r => r.id))); }
