@@ -13,6 +13,7 @@ import { RouterLink } from '@angular/router';
       <nav class="app-header__nav">
         <a routerLink="/" class="app-header__nav-link">Repos</a>
         <a routerLink="/setup" class="app-header__nav-link">Setup</a>
+        <a routerLink="/how-it-works" class="app-header__nav-link">How It Works</a>
       </nav>
     </header>
   `,

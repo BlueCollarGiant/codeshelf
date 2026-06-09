@@ -12,6 +12,11 @@ export const routes: Routes = [
       import('./features/setup/setup.component').then((m) => m.SetupComponent),
   },
   {
+    path: 'how-it-works',
+    loadComponent: () =>
+      import('./features/how-it-works/how-it-works.component').then((m) => m.HowItWorksComponent),
+  },
+  {
     path: '**',
     redirectTo: '',
   },
