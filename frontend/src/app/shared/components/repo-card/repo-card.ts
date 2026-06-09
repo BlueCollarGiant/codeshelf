@@ -77,9 +77,8 @@ import { RelativeDatePipe } from '../../pipes/relative-date.pipe';
             <app-suggestion-badge [suggestions]="s.suggestions" />
             @if (!dismissed()) {
               <button class="dismiss-btn" title="Dismiss suggestions" aria-label="Dismiss suggestions" (click)="dismiss.emit()">
-                <svg class="dismiss-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
-                  <line x1="4" y1="4" x2="12" y2="12" />
-                  <line x1="12" y1="4" x2="4" y2="12" />
+                <svg class="dismiss-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
                 </svg>
               </button>
             } @else {
@@ -225,18 +224,6 @@ import { RelativeDatePipe } from '../../pipes/relative-date.pipe';
       border-radius: var(--radius-full);
       background: color-mix(in srgb, var(--bg-inset) 65%, transparent);
     }
-    .repo-card__meta-item--type { font-weight: var(--font-weight-semibold); }
-    .repo-card__meta-item--lang { font-weight: var(--font-weight-medium); color: var(--text-secondary); }
-    .repo-card__meta-item--topic { color: var(--color-primary); border-color: color-mix(in srgb, var(--color-primary) 30%, transparent); background: color-mix(in srgb, var(--color-primary) 6%, transparent); }
-    .type--profile   { color: var(--color-primary);    border-color: var(--color-primary);    background: color-mix(in srgb, var(--color-primary) 8%, transparent); }
-    .type--portfolio { color: var(--color-success-fg); border-color: var(--color-success);    background: color-mix(in srgb, var(--color-success) 8%, transparent); }
-    .type--active    { color: var(--color-success-fg); border-color: var(--color-success);    background: color-mix(in srgb, var(--color-success) 8%, transparent); }
-    .type--config    { color: var(--text-secondary);   border-color: var(--border-subtle);    background: var(--bg-elevated); }
-    .type--template  { color: var(--color-primary);    border-color: var(--color-primary);    background: color-mix(in srgb, var(--color-primary) 8%, transparent); }
-    .type--fork      { color: var(--text-secondary);   border-color: var(--border-subtle);    background: var(--bg-elevated); }
-    .type--archived  { color: var(--text-muted);       border-color: var(--border-subtle);    background: var(--bg-inset); }
-    .type--old       { color: var(--color-warning-fg); border-color: var(--color-warning);    background: color-mix(in srgb, var(--color-warning) 8%, transparent); }
-    .type--experiment{ color: var(--text-secondary);   border-color: var(--border-subtle);    background: var(--bg-elevated); }
     .repo-card__suggestions {
       display: flex;
       flex-wrap: wrap;
@@ -271,8 +258,8 @@ import { RelativeDatePipe } from '../../pipes/relative-date.pipe';
       background: var(--bg-elevated);
     }
     .dismiss-icon {
-      width: 14px;
-      height: 14px;
+      width: 16px;
+      height: 16px;
       flex-shrink: 0;
     }
     .restore-btn {
