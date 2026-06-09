@@ -7,8 +7,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { SafeGitHubRepo } from '../../core/models/github-repo.model';
 import { RepoScore } from '../../core/models/repo-score.model';
 import { DashboardStats } from '../../core/models/dashboard-stats.model';
+import { RepoSuggestionType } from '../../core/models/repo-suggestion.model';
 import { scoreRepo } from '../../core/utils/repo-score.utils';
 import { RepoApiService } from '../../core/services/repo-api.service';
+import { RepoAnalysisService, SuggestionFilter } from '../../core/services/repo-analysis.service';
 import { RepoCardComponent } from '../../shared/components/repo-card/repo-card';
 import { StatCardComponent } from '../../shared/components/stat-card/stat-card';
 import { LoadingStateComponent } from '../../shared/components/loading-state/loading-state';
@@ -36,7 +38,6 @@ type LoadState = 'loading' | 'loaded' | 'error-offline' | 'error-token' | 'error
   template: `
     <div class="repos-page">
 
-      <!-- Stats bar -->
       <section class="repos-page__stats">
         <app-stat-card [value]="stats().total"               label="Total" />
         <app-stat-card [value]="stats().public"              label="Public" />
@@ -47,7 +48,6 @@ type LoadState = 'loading' | 'loaded' | 'error-offline' | 'error-token' | 'error
         <app-stat-card [value]="stats().cleanupCandidates"   label="Cleanup" />
       </section>
 
-      <!-- Controls bar -->
       <section class="repos-page__controls">
         <mat-form-field appearance="outline" subscriptSizing="dynamic" class="controls__search">
           <mat-label>Search repos</mat-label>
@@ -66,13 +66,24 @@ type LoadState = 'loading' | 'loaded' | 'error-offline' | 'error-token' | 'error
           </mat-select>
         </mat-form-field>
 
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="controls__filter">
+          <mat-label>Filter</mat-label>
+          <mat-select [value]="suggestionFilter()" (selectionChange)="suggestionFilter.set($event.value)">
+            <mat-option value="all">All repos</mat-option>
+            <mat-option value="portfolio_candidate">Portfolio candidates</mat-option>
+            <mat-option value="needs_description">Missing description</mat-option>
+            <mat-option value="old_experiment">Old &amp; quiet</mat-option>
+            <mat-option value="fork_review">Forks</mat-option>
+            <mat-option value="already_archived">Archived</mat-option>
+            <mat-option value="healthy_repo">Healthy</mat-option>
+          </mat-select>
+        </mat-form-field>
+
         <button mat-stroked-button (click)="selectAll()">Select all</button>
         <button mat-stroked-button (click)="deselectAll()">Deselect all</button>
-
-        <button mat-stroked-button (click)="refresh()" [disabled]="loadState() === 'loading'" class="controls__refresh">
+        <button mat-stroked-button (click)="refresh()" [disabled]="loadState() === 'loading'">
           <mat-icon>refresh</mat-icon>
         </button>
-
         <button mat-flat-button color="primary" class="controls__analyse" disabled>
           Analyse Public Repos
         </button>
@@ -83,27 +94,15 @@ type LoadState = 'loading' | 'loaded' | 'error-offline' | 'error-token' | 'error
           <app-loading-state />
         }
         @case ('error-offline') {
-          <app-error-state
-            message="Cannot reach the backend. Make sure npm run dev is running."
-            [showRetry]="true"
-            (retry)="refresh()"
-          />
+          <app-error-state message="Cannot reach the backend. Make sure npm run dev is running." [showRetry]="true" (retry)="refresh()" />
         }
         @case ('error-token') {
-          <app-error-state
-            message="GitHub token missing or invalid. Check your .env file and restart the server."
-            [showRetry]="false"
-          />
+          <app-error-state message="GitHub token missing or invalid. Check your .env file and restart the server." [showRetry]="false" />
         }
         @case ('error-ratelimit') {
-          <app-error-state
-            message="GitHub rate limit exceeded. Wait a few minutes and try again."
-            [showRetry]="true"
-            (retry)="refresh()"
-          />
+          <app-error-state message="GitHub rate limit exceeded. Wait a few minutes and try again." [showRetry]="true" (retry)="refresh()" />
         }
         @default {
-          <!-- Public section -->
           <section class="repos-page__section">
             <h2 class="repos-page__section-title">
               Public <span class="repos-page__count">{{ filteredPublic().length }}</span>
@@ -117,14 +116,16 @@ type LoadState = 'loading' | 'loaded' | 'error-offline' | 'error-token' | 'error
                     [repo]="repo"
                     [score]="scoreMap()[repo.id] ?? null"
                     [selected]="selectedIds().has(repo.id)"
+                    [dismissed]="analysis.dismissed().has(repo.id)"
                     (selectionChange)="toggleSelection(repo.id, $event)"
+                    (dismiss)="analysis.dismiss(repo.id)"
+                    (restore)="analysis.restore(repo.id)"
                   />
                 }
               </div>
             }
           </section>
 
-          <!-- Private section -->
           <section class="repos-page__section">
             <h2 class="repos-page__section-title">
               Private <span class="repos-page__count">{{ filteredPrivate().length }}</span>
@@ -138,7 +139,10 @@ type LoadState = 'loading' | 'loaded' | 'error-offline' | 'error-token' | 'error
                     [repo]="repo"
                     [score]="scoreMap()[repo.id] ?? null"
                     [selected]="selectedIds().has(repo.id)"
+                    [dismissed]="analysis.dismissed().has(repo.id)"
                     (selectionChange)="toggleSelection(repo.id, $event)"
+                    (dismiss)="analysis.dismiss(repo.id)"
+                    (restore)="analysis.restore(repo.id)"
                   />
                 }
               </div>
@@ -157,20 +161,11 @@ type LoadState = 'loading' | 'loaded' | 'error-offline' | 'error-token' | 'error
       flex-direction: column;
       gap: var(--space-6);
     }
-    .repos-page__stats {
-      display: flex;
-      gap: var(--space-3);
-      flex-wrap: wrap;
-    }
-    .repos-page__controls {
-      display: flex;
-      gap: var(--space-3);
-      align-items: center;
-      flex-wrap: wrap;
-    }
+    .repos-page__stats { display: flex; gap: var(--space-3); flex-wrap: wrap; }
+    .repos-page__controls { display: flex; gap: var(--space-3); align-items: center; flex-wrap: wrap; }
     .controls__search { flex: 1; min-width: var(--controls-search-min-width); }
-    .controls__sort { width: var(--controls-sort-width); }
-    .controls__refresh { min-width: unset; }
+    .controls__sort   { width: var(--controls-sort-width); }
+    .controls__filter { width: var(--controls-sort-width); }
     .controls__analyse { margin-left: auto; white-space: nowrap; }
     .repos-page__section { display: flex; flex-direction: column; gap: var(--space-3); }
     .repos-page__section-title {
@@ -181,32 +176,24 @@ type LoadState = 'loading' | 'loaded' | 'error-offline' | 'error-token' | 'error
       align-items: center;
       gap: var(--space-2);
     }
-    .repos-page__count {
-      font-size: var(--font-size-sm);
-      color: var(--text-muted);
-      font-weight: var(--font-weight-normal);
-    }
-    .repos-page__list {
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-3);
-    }
+    .repos-page__count { font-size: var(--font-size-sm); color: var(--text-muted); font-weight: var(--font-weight-normal); }
+    .repos-page__list { display: flex; flex-direction: column; gap: var(--space-3); }
   `]
 })
 export class ReposComponent implements OnInit {
   private readonly api = inject(RepoApiService);
+  readonly analysis    = inject(RepoAnalysisService);
 
-  readonly loadState = signal<LoadState>('loading');
-  readonly repos = signal<SafeGitHubRepo[]>([]);
-  readonly selectedIds = signal<Set<number>>(new Set());
-  readonly searchQuery = signal('');
-  readonly sortKey = signal<SortKey>('updated');
+  readonly loadState      = signal<LoadState>('loading');
+  readonly repos          = signal<SafeGitHubRepo[]>([]);
+  readonly selectedIds    = signal<Set<number>>(new Set());
+  readonly searchQuery    = signal('');
+  readonly sortKey        = signal<SortKey>('updated');
+  readonly suggestionFilter = signal<SuggestionFilter>('all');
 
   readonly scoreMap = computed<Record<number, RepoScore>>(() => {
     const map: Record<number, RepoScore> = {};
-    for (const repo of this.repos()) {
-      map[repo.id] = scoreRepo(repo);
-    }
+    for (const repo of this.repos()) map[repo.id] = scoreRepo(repo);
     return map;
   });
 
@@ -214,14 +201,14 @@ export class ReposComponent implements OnInit {
     const all = this.repos();
     const scores = this.scoreMap();
     return {
-      total: all.length,
-      public: all.filter(r => !r.private).length,
-      private: all.filter(r => r.private).length,
-      archived: all.filter(r => r.archived).length,
-      forks: all.filter(r => r.fork).length,
+      total:               all.length,
+      public:              all.filter(r => !r.private).length,
+      private:             all.filter(r => r.private).length,
+      archived:            all.filter(r => r.archived).length,
+      forks:               all.filter(r => r.fork).length,
       portfolioCandidates: Object.values(scores).filter(s => s.portfolioScore >= 60).length,
-      cleanupCandidates: Object.values(scores).filter(s => s.cleanupScore >= 40).length,
-      missingDescription: all.filter(r => !r.description).length,
+      cleanupCandidates:   Object.values(scores).filter(s => s.cleanupScore >= 40).length,
+      missingDescription:  all.filter(r => !r.description).length,
       oldInactive: all.filter(r => {
         const age = Date.now() - new Date(r.updatedAt).getTime();
         return age > 12 * 30 * 24 * 60 * 60 * 1000 && r.stargazersCount === 0;
@@ -230,13 +217,20 @@ export class ReposComponent implements OnInit {
   });
 
   private readonly filteredAndSorted = computed<SafeGitHubRepo[]>(() => {
-    const q = this.searchQuery().toLowerCase().trim();
-    const key = this.sortKey();
+    const q      = this.searchQuery().toLowerCase().trim();
+    const key    = this.sortKey();
+    const filter = this.suggestionFilter();
     const scores = this.scoreMap();
 
-    const list = this.repos().filter(r =>
+    let list = this.repos().filter(r =>
       !q || r.name.toLowerCase().includes(q) || r.fullName.toLowerCase().includes(q)
     );
+
+    if (filter !== 'all') {
+      list = list.filter(r =>
+        scores[r.id]?.suggestions.some(s => s.type === (filter as RepoSuggestionType))
+      );
+    }
 
     return [...list].sort((a, b) => {
       if (key === 'updated')   return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
@@ -270,30 +264,20 @@ export class ReposComponent implements OnInit {
       this.loadState.set('loaded');
     } catch (err: unknown) {
       const status = (err as { status?: number }).status;
-      if (status === 401) {
-        this.loadState.set('error-token');
-      } else if (status === 429) {
-        this.loadState.set('error-ratelimit');
-      } else {
-        this.loadState.set('error-offline');
-      }
+      if (status === 401)      this.loadState.set('error-token');
+      else if (status === 429) this.loadState.set('error-ratelimit');
+      else                     this.loadState.set('error-offline');
     }
   }
 
   toggleSelection(id: number, checked: boolean): void {
     this.selectedIds.update(current => {
       const next = new Set(current);
-      if (checked) next.add(id);
-      else next.delete(id);
+      if (checked) next.add(id); else next.delete(id);
       return next;
     });
   }
 
-  selectAll(): void {
-    this.selectedIds.set(new Set(this.filteredAndSorted().map(r => r.id)));
-  }
-
-  deselectAll(): void {
-    this.selectedIds.set(new Set());
-  }
+  selectAll(): void   { this.selectedIds.set(new Set(this.filteredAndSorted().map(r => r.id))); }
+  deselectAll(): void { this.selectedIds.set(new Set()); }
 }

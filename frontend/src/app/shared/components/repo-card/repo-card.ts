@@ -1,6 +1,8 @@
 import { Component, ChangeDetectionStrategy, input, output } from '@angular/core';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 import { SafeGitHubRepo } from '../../../core/models/github-repo.model';
 import { RepoScore } from '../../../core/models/repo-score.model';
 import { SuggestionBadgeComponent } from '../suggestion-badge/suggestion-badge';
@@ -8,7 +10,7 @@ import { RelativeDatePipe } from '../../pipes/relative-date.pipe';
 
 @Component({
   selector: 'app-repo-card',
-  imports: [MatCheckboxModule, MatChipsModule, SuggestionBadgeComponent, RelativeDatePipe],
+  imports: [MatCheckboxModule, MatChipsModule, MatButtonModule, MatIconModule, SuggestionBadgeComponent, RelativeDatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="repo-card" [class.repo-card--selected]="selected()">
@@ -54,6 +56,13 @@ import { RelativeDatePipe } from '../../pipes/relative-date.pipe';
         @if (score(); as s) {
           <div class="repo-card__suggestions">
             <app-suggestion-badge [suggestions]="s.suggestions" />
+            @if (!dismissed()) {
+              <button mat-icon-button class="dismiss-btn" title="Dismiss suggestions for this repo" (click)="dismiss.emit()">
+                <mat-icon>close</mat-icon>
+              </button>
+            } @else {
+              <button mat-button class="restore-btn" (click)="restore.emit()">Restore</button>
+            }
           </div>
           <div class="repo-card__scores">
             <span class="chip">Portfolio {{ s.portfolioScore }}</span>
@@ -85,7 +94,7 @@ import { RelativeDatePipe } from '../../pipes/relative-date.pipe';
     }
     .repo-card__checkbox {
       flex-shrink: 0;
-      padding-top: 2px;
+      padding-top: var(--card-checkbox-padding-top);
     }
     .repo-card__body {
       flex: 1;
@@ -144,7 +153,7 @@ import { RelativeDatePipe } from '../../pipes/relative-date.pipe';
     .badge {
       display: inline-flex;
       align-items: center;
-      padding: 2px var(--space-2);
+      padding: var(--badge-padding-y) var(--space-2);
       border-radius: var(--badge-radius);
       font-size: var(--badge-font-size);
       font-weight: var(--badge-font-weight);
@@ -167,13 +176,29 @@ import { RelativeDatePipe } from '../../pipes/relative-date.pipe';
       font-weight: var(--chip-font-weight);
       color: var(--text-secondary);
     }
+    .dismiss-btn {
+      margin-left: auto;
+      width: var(--space-6);
+      height: var(--space-6);
+      line-height: 1;
+      opacity: 0.5;
+    }
+    .dismiss-btn:hover { opacity: 1; }
+    .restore-btn {
+      margin-left: auto;
+      font-size: var(--font-size-xs);
+      color: var(--text-muted);
+    }
   `]
 })
 export class RepoCardComponent {
-  repo = input.required<SafeGitHubRepo>();
-  score = input<RepoScore | null>(null);
-  selected = input<boolean>(false);
+  repo            = input.required<SafeGitHubRepo>();
+  score           = input<RepoScore | null>(null);
+  selected        = input<boolean>(false);
+  dismissed       = input<boolean>(false);
   selectionChange = output<boolean>();
+  dismiss         = output<void>();
+  restore         = output<void>();
 
   visibilityClass(): string {
     return `badge badge--${this.repo().visibility}`;

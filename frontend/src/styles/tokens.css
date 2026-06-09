@@ -310,6 +310,8 @@
   --controls-sort-width:       180px;
   --code-inline-padding:       2px 6px;
   --status-label-min-width:    120px;
+  --card-checkbox-padding-top: 2px;
+  --badge-padding-y:           2px;
 
   /* --- Action controls bar (Make Private / Make Public / Delete toggle) --- */
   --action-bar-bg:      var(--bg-sidebar);

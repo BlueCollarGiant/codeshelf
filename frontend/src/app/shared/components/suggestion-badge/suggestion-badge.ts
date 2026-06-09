@@ -14,7 +14,7 @@ import { RepoSuggestion } from '../../../core/models/repo-suggestion.model';
     .badge {
       display: inline-flex;
       align-items: center;
-      padding: 2px var(--space-2);
+      padding: var(--badge-padding-y) var(--space-2);
       border-radius: var(--badge-radius);
       font-size: var(--badge-font-size);
       font-weight: var(--badge-font-weight);
