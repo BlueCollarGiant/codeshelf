@@ -139,7 +139,7 @@ type DeleteState = 'idle' | 'confirming' | 'executing' | 'results';
         <p class="ai-advisory ai-advisory--error">AI analysis failed. Check your AI_PROVIDER setting in .env.</p>
       }
 
-      @if (selectedIds().size > 0) {
+      @if (!deleteToggleEnabled() && selectedIds().size > 0) {
         <div class="action-bar">
           <span class="action-bar__label">{{ selectedIds().size }} repo{{ selectedIds().size === 1 ? '' : 's' }} selected</span>
           <div class="action-bar__buttons">

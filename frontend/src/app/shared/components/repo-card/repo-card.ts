@@ -15,18 +15,19 @@ import { RelativeDatePipe } from '../../pipes/relative-date.pipe';
   template: `
     <article class="repo-card" [class.repo-card--selected]="selected()" [class.repo-card--delete]="markedForDelete()">
       <div class="repo-card__rail">
-        <mat-checkbox
-          [checked]="selected()"
-          (change)="selectionChange.emit($event.checked)"
-          [aria-label]="'Select ' + repo().name"
-        />
         @if (deleteMode()) {
           <mat-checkbox
-            class="delete-checkbox"
             color="warn"
             [checked]="markedForDelete()"
             (change)="deleteChange.emit($event.checked)"
             [aria-label]="'Mark ' + repo().name + ' for deletion'"
+          />
+          <span class="repo-card__rail-delete-label">Delete</span>
+        } @else {
+          <mat-checkbox
+            [checked]="selected()"
+            (change)="selectionChange.emit($event.checked)"
+            [aria-label]="'Select ' + repo().name"
           />
         }
       </div>
@@ -152,7 +153,12 @@ import { RelativeDatePipe } from '../../pipes/relative-date.pipe';
       flex-direction: column;
       gap: var(--space-2);
     }
-    .delete-checkbox { display: block; }
+    .repo-card__rail-delete-label {
+      font-size: var(--font-size-xs);
+      color: var(--color-danger-fg);
+      text-align: center;
+      line-height: 1;
+    }
     .repo-card__body {
       min-width: 0;
       display: flex;
