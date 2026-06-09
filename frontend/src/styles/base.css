@@ -60,3 +60,14 @@ code, pre {
   background: var(--scrollbar-thumb);
   border-radius: var(--radius-full);
 }
+
+/* Kill the MDC checkbox state-layer ghost that lingers after uncheck */
+.mat-mdc-checkbox .mdc-checkbox__ripple,
+.mat-mdc-checkbox .mat-mdc-checkbox-ripple,
+.mat-mdc-checkbox .mdc-checkbox__background::before {
+  display: none !important;
+}
+.mat-mdc-checkbox .mdc-checkbox .mdc-checkbox__native-control:not(:checked) ~ .mdc-checkbox__background {
+  background-color: transparent !important;
+  border-color: var(--checkbox-border) !important;
+}
