@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
-import { VisibilityRequest, VisibilityResponse } from '../models/action-result.model';
+import { VisibilityRequest, VisibilityResponse, DeleteRequest, DeleteResponse } from '../models/action-result.model';
 
 const API = 'http://localhost:3000/api';
 const ACTION_HEADER = 'X-CodeShelf-Action';
@@ -16,6 +16,16 @@ export class RepoActionsService {
         `${API}/github/repos/visibility`,
         { repos },
         { headers: { [ACTION_HEADER]: 'visibility' } },
+      )
+    );
+  }
+
+  deleteRepos(repos: DeleteRequest[]): Promise<DeleteResponse> {
+    return firstValueFrom(
+      this.http.post<DeleteResponse>(
+        `${API}/github/repos/delete`,
+        { repos },
+        { headers: { [ACTION_HEADER]: 'delete' } },
       )
     );
   }

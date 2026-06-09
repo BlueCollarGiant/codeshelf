@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, input, output } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, output, computed } from '@angular/core';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatButtonModule } from '@angular/material/button';
@@ -21,6 +21,15 @@ import { RelativeDatePipe } from '../../pipes/relative-date.pipe';
           (change)="selectionChange.emit($event.checked)"
           [aria-label]="'Select ' + repo().name"
         />
+        @if (deleteMode()) {
+          <mat-checkbox
+            class="delete-checkbox"
+            color="warn"
+            [checked]="markedForDelete()"
+            (change)="deleteChange.emit($event.checked)"
+            [aria-label]="'Mark ' + repo().name + ' for deletion'"
+          />
+        }
       </div>
 
       <div class="repo-card__body">
@@ -108,7 +117,11 @@ import { RelativeDatePipe } from '../../pipes/relative-date.pipe';
     .repo-card__checkbox {
       flex-shrink: 0;
       padding-top: var(--card-checkbox-padding-top);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
     }
+    .delete-checkbox { display: block; }
     .repo-card__body {
       flex: 1;
       min-width: 0;
@@ -227,7 +240,10 @@ export class RepoCardComponent {
   aiResult        = input<RepoAiResult | null>(null);
   selected        = input<boolean>(false);
   dismissed       = input<boolean>(false);
+  deleteMode      = input<boolean>(false);
+  markedForDelete = input<boolean>(false);
   selectionChange = output<boolean>();
+  deleteChange    = output<boolean>();
   dismiss         = output<void>();
   restore         = output<void>();
 

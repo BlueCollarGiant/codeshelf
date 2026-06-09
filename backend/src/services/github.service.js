@@ -79,6 +79,22 @@ export async function getAllRepos() {
   return all;
 }
 
+export async function deleteRepo(fullName) {
+  const token = getToken();
+  const res = await fetch(`${GITHUB_API}/repos/${fullName}`, {
+    method: 'DELETE',
+    headers: authHeaders(token),
+  });
+
+  if (res.status === 401) throw { status: 401, message: 'GitHub token is invalid or expired.' };
+  if (res.status === 403) throw { status: 403, message: `Insufficient token scope to delete ${fullName}. Requires delete_repo scope (classic PAT) or Administration read/write (fine-grained PAT).` };
+  if (res.status === 404) throw { status: 404, message: `Repository ${fullName} not found or not accessible.` };
+  if (res.status === 204) return true;
+  if (!res.ok) throw { status: res.status, message: `Failed to delete ${fullName} (${res.status}).` };
+
+  return true;
+}
+
 export async function setRepoVisibility(fullName, visibility) {
   const token = getToken();
   const res = await fetch(`${GITHUB_API}/repos/${fullName}`, {

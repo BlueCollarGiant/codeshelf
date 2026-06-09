@@ -4,11 +4,12 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatIconModule } from '@angular/material/icon';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { SafeGitHubRepo } from '../../core/models/github-repo.model';
 import { RepoScore } from '../../core/models/repo-score.model';
 import { DashboardStats } from '../../core/models/dashboard-stats.model';
 import { RepoSuggestionType } from '../../core/models/repo-suggestion.model';
-import { VisibilityAction, VisibilityResult } from '../../core/models/action-result.model';
+import { VisibilityAction, VisibilityResult, DeleteResult } from '../../core/models/action-result.model';
 import { scoreRepo } from '../../core/utils/repo-score.utils';
 import { RepoApiService } from '../../core/services/repo-api.service';
 import { AiApiService } from '../../core/services/ai-api.service';
@@ -22,11 +23,14 @@ import { EmptyStateComponent } from '../../shared/components/empty-state/empty-s
 import { ErrorStateComponent } from '../../shared/components/error-state/error-state';
 import { WarningScreenComponent } from './warning-screen/warning-screen';
 import { ResultScreenComponent } from './result-screen/result-screen';
+import { DeleteConfirmScreenComponent } from './delete-confirm-screen/delete-confirm-screen';
+import { DeleteResultScreenComponent } from './delete-result-screen/delete-result-screen';
 
 type SortKey = 'updated' | 'stars' | 'forks' | 'name' | 'portfolio' | 'cleanup';
 type LoadState = 'loading' | 'loaded' | 'error-offline' | 'error-token' | 'error-ratelimit';
-type AiState   = 'idle' | 'loading' | 'done' | 'error';
+type AiState     = 'idle' | 'loading' | 'done' | 'error';
 type ActionState = 'idle' | 'warning' | 'executing' | 'results';
+type DeleteState = 'idle' | 'confirming' | 'executing' | 'results';
 
 @Component({
   selector: 'app-repos',
@@ -36,6 +40,7 @@ type ActionState = 'idle' | 'warning' | 'executing' | 'results';
     MatInputModule,
     MatSelectModule,
     MatIconModule,
+    MatSlideToggleModule,
     RepoCardComponent,
     StatCardComponent,
     LoadingStateComponent,
@@ -43,6 +48,8 @@ type ActionState = 'idle' | 'warning' | 'executing' | 'results';
     ErrorStateComponent,
     WarningScreenComponent,
     ResultScreenComponent,
+    DeleteConfirmScreenComponent,
+    DeleteResultScreenComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -99,6 +106,18 @@ type ActionState = 'idle' | 'warning' | 'executing' | 'results';
           (click)="analysePublicRepos()">
           @if (aiState() === 'loading') { Analysing… } @else { Analyse Public Repos }
         </button>
+
+        <div class="delete-toggle" [class.delete-toggle--active]="deleteToggleEnabled()">
+          <mat-slide-toggle
+            [checked]="deleteToggleEnabled()"
+            (change)="onDeleteToggleChange($event.checked)"
+            color="warn">
+            Enable deletion
+          </mat-slide-toggle>
+          @if (deleteToggleEnabled()) {
+            <span class="delete-toggle__warning">Deletion is permanent</span>
+          }
+        </div>
       </section>
 
       @if (aiState() === 'done') {
@@ -123,6 +142,19 @@ type ActionState = 'idle' | 'warning' | 'executing' | 'results';
               <mat-icon>public</mat-icon> Make Public
             </button>
           </div>
+        </div>
+      }
+
+      @if (deleteToggleEnabled() && deleteSelectedIds().size > 0) {
+        <div class="action-bar action-bar--delete">
+          <mat-icon class="delete-bar-icon">warning</mat-icon>
+          <span class="action-bar__label">{{ deleteSelectedIds().size }} repo{{ deleteSelectedIds().size === 1 ? '' : 's' }} marked for deletion</span>
+          <button mat-flat-button color="warn" class="delete-btn"
+            [disabled]="deleteState() === 'executing'"
+            (click)="initiateDelete()">
+            <mat-icon>delete_forever</mat-icon>
+            Delete {{ deleteSelectedIds().size }} {{ deleteSelectedIds().size === 1 ? 'Repo' : 'Repos' }}
+          </button>
         </div>
       }
 
@@ -155,7 +187,10 @@ type ActionState = 'idle' | 'warning' | 'executing' | 'results';
                     [aiResult]="aiResults()[repo.id] ?? null"
                     [selected]="selectedIds().has(repo.id)"
                     [dismissed]="analysis.dismissed().has(repo.id)"
+                    [deleteMode]="deleteToggleEnabled()"
+                    [markedForDelete]="deleteSelectedIds().has(repo.id)"
                     (selectionChange)="toggleSelection(repo.id, $event)"
+                    (deleteChange)="toggleDeleteSelection(repo.id, $event)"
                     (dismiss)="analysis.dismiss(repo.id)"
                     (restore)="analysis.restore(repo.id)"
                   />
@@ -178,7 +213,10 @@ type ActionState = 'idle' | 'warning' | 'executing' | 'results';
                     [score]="scoreMap()[repo.id] ?? null"
                     [selected]="selectedIds().has(repo.id)"
                     [dismissed]="analysis.dismissed().has(repo.id)"
+                    [deleteMode]="deleteToggleEnabled()"
+                    [markedForDelete]="deleteSelectedIds().has(repo.id)"
                     (selectionChange)="toggleSelection(repo.id, $event)"
+                    (deleteChange)="toggleDeleteSelection(repo.id, $event)"
                     (dismiss)="analysis.dismiss(repo.id)"
                     (restore)="analysis.restore(repo.id)"
                   />
@@ -205,6 +243,21 @@ type ActionState = 'idle' | 'warning' | 'executing' | 'results';
         (done)="closeResults()"
       />
     }
+
+    @if (deleteState() === 'confirming') {
+      <app-delete-confirm-screen
+        [repos]="deleteSelectedRepos()"
+        (cancel)="cancelDelete()"
+        (confirm)="executeDelete()"
+      />
+    }
+
+    @if (deleteState() === 'results') {
+      <app-delete-result-screen
+        [results]="deleteResults()"
+        (done)="closeDeleteResults()"
+      />
+    }
   `,
   styles: [`
     .repos-page {
@@ -221,6 +274,23 @@ type ActionState = 'idle' | 'warning' | 'executing' | 'results';
     .controls__sort   { width: var(--controls-sort-width); }
     .controls__filter { width: var(--controls-sort-width); }
     .controls__analyse { margin-left: auto; white-space: nowrap; }
+    .delete-toggle {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-2) var(--space-3);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-subtle);
+    }
+    .delete-toggle--active {
+      border-color: var(--color-danger);
+      background: var(--color-danger-bg);
+    }
+    .delete-toggle__warning {
+      font-size: var(--font-size-xs);
+      color: var(--color-danger-fg);
+      font-weight: var(--font-weight-semibold);
+    }
     .action-bar {
       display: flex;
       align-items: center;
@@ -231,8 +301,14 @@ type ActionState = 'idle' | 'warning' | 'executing' | 'results';
       border-radius: var(--radius-md);
       flex-wrap: wrap;
     }
+    .action-bar--delete {
+      border-color: var(--color-danger);
+      background: var(--color-danger-bg);
+    }
+    .delete-bar-icon { color: var(--color-danger-fg); }
     .action-bar__label { font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); color: var(--text-primary); flex: 1; }
     .action-bar__buttons { display: flex; gap: var(--space-3); }
+    .delete-btn { margin-left: auto; }
     .repos-page__section { display: flex; flex-direction: column; gap: var(--space-3); }
     .repos-page__section-title {
       font-size: var(--font-size-xl);
@@ -262,17 +338,21 @@ export class ReposComponent implements OnInit {
   private readonly actions = inject(RepoActionsService);
   readonly analysis        = inject(RepoAnalysisService);
 
-  readonly loadState        = signal<LoadState>('loading');
-  readonly aiState          = signal<AiState>('idle');
-  readonly actionState      = signal<ActionState>('idle');
-  readonly repos            = signal<SafeGitHubRepo[]>([]);
-  readonly aiResults        = signal<Record<number, RepoAiResult>>({});
-  readonly actionResults    = signal<VisibilityResult[]>([]);
-  readonly selectedIds      = signal<Set<number>>(new Set());
-  readonly searchQuery      = signal('');
-  readonly sortKey          = signal<SortKey>('updated');
-  readonly suggestionFilter = signal<SuggestionFilter>('all');
-  readonly pendingAction    = signal<VisibilityAction | null>(null);
+  readonly loadState          = signal<LoadState>('loading');
+  readonly aiState            = signal<AiState>('idle');
+  readonly actionState        = signal<ActionState>('idle');
+  readonly deleteState        = signal<DeleteState>('idle');
+  readonly repos              = signal<SafeGitHubRepo[]>([]);
+  readonly aiResults          = signal<Record<number, RepoAiResult>>({});
+  readonly actionResults      = signal<VisibilityResult[]>([]);
+  readonly deleteResults      = signal<DeleteResult[]>([]);
+  readonly selectedIds        = signal<Set<number>>(new Set());
+  readonly deleteSelectedIds  = signal<Set<number>>(new Set());
+  readonly searchQuery        = signal('');
+  readonly sortKey            = signal<SortKey>('updated');
+  readonly suggestionFilter   = signal<SuggestionFilter>('all');
+  readonly pendingAction      = signal<VisibilityAction | null>(null);
+  readonly deleteToggleEnabled = signal<boolean>(false);
 
   readonly scoreMap = computed<Record<number, RepoScore>>(() => {
     const map: Record<number, RepoScore> = {};
@@ -301,6 +381,10 @@ export class ReposComponent implements OnInit {
 
   readonly selectedRepos = computed<SafeGitHubRepo[]>(() =>
     this.repos().filter(r => this.selectedIds().has(r.id))
+  );
+
+  readonly deleteSelectedRepos = computed<SafeGitHubRepo[]>(() =>
+    this.repos().filter(r => this.deleteSelectedIds().has(r.id))
   );
 
   private readonly filteredAndSorted = computed<SafeGitHubRepo[]>(() => {
@@ -341,6 +425,7 @@ export class ReposComponent implements OnInit {
     this.loadState.set('loading');
     this.repos.set([]);
     this.selectedIds.set(new Set());
+    this.deleteSelectedIds.set(new Set());
     await this.loadRepos();
   }
 
@@ -357,12 +442,31 @@ export class ReposComponent implements OnInit {
     }
   }
 
+  onSearchInput(event: Event): void {
+    this.searchQuery.set((event.target as HTMLInputElement).value);
+  }
+
   toggleSelection(id: number, checked: boolean): void {
     this.selectedIds.update(current => {
       const next = new Set(current);
       if (checked) next.add(id); else next.delete(id);
       return next;
     });
+  }
+
+  toggleDeleteSelection(id: number, checked: boolean): void {
+    this.deleteSelectedIds.update(current => {
+      const next = new Set(current);
+      if (checked) next.add(id); else next.delete(id);
+      return next;
+    });
+  }
+
+  onDeleteToggleChange(enabled: boolean): void {
+    this.deleteToggleEnabled.set(enabled);
+    if (!enabled) {
+      this.deleteSelectedIds.set(new Set());
+    }
   }
 
   async analysePublicRepos(): Promise<void> {
@@ -422,8 +526,37 @@ export class ReposComponent implements OnInit {
     await this.refresh();
   }
 
-  onSearchInput(event: Event): void {
-    this.searchQuery.set((event.target as HTMLInputElement).value);
+  initiateDelete(): void {
+    this.deleteState.set('confirming');
+  }
+
+  cancelDelete(): void {
+    this.deleteState.set('idle');
+  }
+
+  async executeDelete(): Promise<void> {
+    const requests = this.deleteSelectedRepos().map(r => ({ fullName: r.fullName }));
+    this.deleteState.set('executing');
+    try {
+      const { results } = await this.actions.deleteRepos(requests);
+      this.deleteResults.set(results);
+    } catch {
+      const fallback: DeleteResult[] = requests.map(r => ({
+        fullName: r.fullName,
+        success: false,
+        status: 'failed' as const,
+        message: 'Backend unreachable or returned an unexpected error.',
+      }));
+      this.deleteResults.set(fallback);
+    }
+    this.deleteState.set('results');
+  }
+
+  async closeDeleteResults(): Promise<void> {
+    this.deleteState.set('idle');
+    this.deleteToggleEnabled.set(false);
+    this.deleteSelectedIds.set(new Set());
+    await this.refresh();
   }
 
   selectAll(): void   { this.selectedIds.set(new Set(this.filteredAndSorted().map(r => r.id))); }

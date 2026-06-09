@@ -16,3 +16,19 @@ export interface VisibilityResponse {
   success: boolean;
   results: VisibilityResult[];
 }
+
+export interface DeleteRequest {
+  fullName: string;
+}
+
+export interface DeleteResult {
+  fullName: string;
+  success: boolean;
+  status: 'deleted' | 'failed';
+  message?: string;
+}
+
+export interface DeleteResponse {
+  success: boolean;
+  results: DeleteResult[];
+}

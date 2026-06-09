@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { checkTokenStatus, getAuthenticatedUser, getAllRepos, setRepoVisibility } from '../services/github.service.js';
+import { checkTokenStatus, getAuthenticatedUser, getAllRepos, setRepoVisibility, deleteRepo } from '../services/github.service.js';
 import { sanitizeRepo, sanitizeUser } from '../utils/sanitize.js';
 
 const router = Router();
@@ -58,6 +58,36 @@ router.post('/repos/visibility', async (req, res, next) => {
       results.push({ fullName, visibility, success: true });
     } catch (err) {
       results.push({ fullName, visibility, success: false, message: err.message ?? 'Unknown error.' });
+    }
+  }
+
+  res.json({ success: true, results });
+});
+
+router.post('/repos/delete', async (req, res, next) => {
+  if (req.headers['x-codeshelf-action'] !== 'delete') {
+    return res.status(400).json({ success: false, message: 'Missing or invalid X-CodeShelf-Action header.' });
+  }
+
+  const { repos } = req.body;
+  if (!Array.isArray(repos) || repos.length === 0) {
+    return res.status(400).json({ success: false, message: 'Request body must include a non-empty repos array.' });
+  }
+
+  for (const item of repos) {
+    if (typeof item.fullName !== 'string' || !item.fullName.includes('/')) {
+      return res.status(400).json({ success: false, message: 'Each repo must have a valid fullName (owner/repo).' });
+    }
+  }
+
+  const results = [];
+  for (const { fullName } of repos) {
+    try {
+      await deleteRepo(fullName);
+      results.push({ fullName, success: true, status: 'deleted' });
+    } catch (err) {
+      results.push({ fullName, success: false, status: 'failed', message: err.message ?? 'Unknown error.' });
+      if (err.status === 401) break;
     }
   }
 
