@@ -6,13 +6,12 @@ import { MatSelectModule } from '@angular/material/select';
 import { SafeGitHubRepo } from '../../core/models/github-repo.model';
 import { RepoScore } from '../../core/models/repo-score.model';
 import { DashboardStats } from '../../core/models/dashboard-stats.model';
-import { RepoSuggestionType } from '../../core/models/repo-suggestion.model';
+import { RepoSuggestionType, SuggestionFilter } from '../../core/models/repo-suggestion.model';
 import { VisibilityAction, VisibilityResult, DeleteResult } from '../../core/models/action-result.model';
 import { scoreRepo } from '../../core/utils/repo-score.utils';
 import { RepoApiService } from '../../core/services/repo-api.service';
 import { AiApiService } from '../../core/services/ai-api.service';
 import { RepoActionsService } from '../../core/services/repo-actions.service';
-import { RepoAnalysisService, SuggestionFilter } from '../../core/services/repo-analysis.service';
 import { RepoAiResult } from '../../core/models/repo-ai-result.model';
 import { RepoCardComponent } from '../../shared/components/repo-card/repo-card';
 import { StatCardComponent } from '../../shared/components/stat-card/stat-card';
@@ -421,7 +420,6 @@ export class ReposComponent implements OnInit {
   private readonly api     = inject(RepoApiService);
   private readonly aiApi   = inject(AiApiService);
   private readonly actions = inject(RepoActionsService);
-  readonly analysis        = inject(RepoAnalysisService);
 
   readonly loadState          = signal<LoadState>('loading');
   readonly aiState            = signal<AiState>('idle');

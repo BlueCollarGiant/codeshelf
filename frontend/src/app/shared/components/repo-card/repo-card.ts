@@ -1,11 +1,10 @@
-import { Component, ChangeDetectionStrategy, inject, input, output, computed } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, output } from '@angular/core';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatButtonModule } from '@angular/material/button';
 import { SafeGitHubRepo } from '../../../core/models/github-repo.model';
 import { RepoScore } from '../../../core/models/repo-score.model';
 import { RepoType } from '../../../core/models/repo-type.model';
 import { RepoAiResult } from '../../../core/models/repo-ai-result.model';
-import { RepoAnalysisService } from '../../../core/services/repo-analysis.service';
 import { SuggestionBadgeComponent } from '../suggestion-badge/suggestion-badge';
 import { RelativeDatePipe } from '../../pipes/relative-date.pipe';
 
@@ -86,27 +85,8 @@ import { RelativeDatePipe } from '../../pipes/relative-date.pipe';
               <span class="chip chip--ai">Prof. {{ ai.professionalismRating }}</span>
               @if (ai.suggestDeletion)    { <span class="chip chip--danger">AI: consider deleting</span> }
               @if (ai.suggestMakePrivate) { <span class="chip chip--warn">AI: consider private</span> }
-              <button class="ai-toggle-btn"
-                (click)="isDismissed() ? onRestore() : onDismiss()"
-                [title]="isDismissed() ? 'Show AI analysis' : 'Hide AI analysis'"
-                [attr.aria-label]="(isDismissed() ? 'Show' : 'Hide') + ' AI analysis for ' + repo().name">
-                @if (isDismissed()) {
-                  <svg class="ai-toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/>
-                    <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/>
-                    <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/>
-                    <line x1="2" y1="2" x2="22" y2="22"/>
-                  </svg>
-                } @else {
-                  <svg class="ai-toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/>
-                  </svg>
-                }
-              </button>
             </div>
-            @if (!isDismissed()) {
-              <p class="ai-summary">{{ ai.summary }}</p>
-            }
+            <p class="ai-summary">{{ ai.summary }}</p>
           </div>
         }
       </div>
@@ -248,25 +228,6 @@ import { RelativeDatePipe } from '../../pipes/relative-date.pipe';
       min-width: var(--repo-score-panel-width);
       align-content: start;
     }
-    .ai-toggle-btn {
-      margin-left: auto;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 26px;
-      height: 26px;
-      border-radius: var(--radius-sm);
-      border: none;
-      background: transparent;
-      color: var(--text-muted);
-      cursor: pointer;
-      padding: 0;
-      flex-shrink: 0;
-      transition: color var(--duration-fast) var(--ease-default),
-                  background var(--duration-fast) var(--ease-default);
-    }
-    .ai-toggle-btn:hover { color: var(--text-primary); background: var(--bg-elevated); }
-    .ai-toggle-icon { width: 16px; height: 16px; flex-shrink: 0; }
     .repo-card__ai {
       display: flex;
       flex-direction: column;
@@ -304,18 +265,12 @@ export class RepoCardComponent {
   repo            = input.required<SafeGitHubRepo>();
   score           = input<RepoScore | null>(null);
   aiResult        = input<RepoAiResult | null>(null);
-  private readonly analysis = inject(RepoAnalysisService);
 
   selected        = input<boolean>(false);
   deleteMode      = input<boolean>(false);
   markedForDelete = input<boolean>(false);
   selectionChange = output<boolean>();
   deleteChange    = output<boolean>();
-
-  readonly isDismissed = computed(() => this.analysis.dismissed().has(this.repo().id));
-
-  onDismiss(): void  { this.analysis.dismiss(this.repo().id); }
-  onRestore(): void  { this.analysis.restore(this.repo().id); }
 
   visibilityClass(): string {
     return `badge badge--${this.repo().visibility}`;

@@ -23,3 +23,5 @@ export interface RepoSuggestion {
   severity: RepoSuggestionSeverity;
   reason: string;
 }
+
+export type SuggestionFilter = RepoSuggestionType | 'all';
