@@ -71,3 +71,12 @@ code, pre {
   background-color: transparent !important;
   border-color: var(--checkbox-border) !important;
 }
+
+/* Kill the MDC button state-layer (white hover ghost on dark backgrounds) */
+.mat-mdc-button .mat-mdc-button-persistent-ripple,
+.mat-mdc-raised-button .mat-mdc-button-persistent-ripple,
+.mat-mdc-flat-button .mat-mdc-button-persistent-ripple,
+.mat-mdc-outlined-button .mat-mdc-button-persistent-ripple,
+.mat-mdc-unelevated-button .mat-mdc-button-persistent-ripple {
+  display: none !important;
+}
