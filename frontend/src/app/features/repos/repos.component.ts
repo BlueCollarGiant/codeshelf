@@ -448,6 +448,7 @@ export class ReposComponent implements OnInit {
   readonly actionState        = signal<ActionState>('idle');
   readonly deleteState        = signal<DeleteState>('idle');
   readonly repos              = signal<SafeGitHubRepo[]>([]);
+  readonly ownerLogin         = signal<string>('');
   readonly aiResults          = signal<Record<number, RepoAiResult>>({});
   readonly actionResults      = signal<VisibilityResult[]>([]);
   readonly deleteResults      = signal<DeleteResult[]>([]);
@@ -460,8 +461,9 @@ export class ReposComponent implements OnInit {
   readonly deleteToggleEnabled = signal<boolean>(false);
 
   readonly scoreMap = computed<Record<number, RepoScore>>(() => {
+    const login = this.ownerLogin();
     const map: Record<number, RepoScore> = {};
-    for (const repo of this.repos()) map[repo.id] = scoreRepo(repo);
+    for (const repo of this.repos()) map[repo.id] = scoreRepo(repo, login);
     return map;
   });
 
@@ -536,7 +538,11 @@ export class ReposComponent implements OnInit {
 
   private async loadRepos(): Promise<void> {
     try {
-      const repos = await this.api.getRepos();
+      const [user, repos] = await Promise.all([
+        this.api.getUser(),
+        this.api.getRepos(),
+      ]);
+      this.ownerLogin.set(user.login);
       this.repos.set(repos);
       this.loadState.set('loaded');
     } catch (err: unknown) {

@@ -8,7 +8,12 @@ export type RepoSuggestionType =
   | 'already_archived'
   | 'keep_private'
   | 'cleanup_needed'
-  | 'healthy_repo';
+  | 'healthy_repo'
+  | 'profile_repo'
+  | 'improve_readme'
+  | 'protected'
+  | 'config_repo'
+  | 'template_repo';
 
 export type RepoSuggestionSeverity = 'info' | 'success' | 'warning' | 'danger';
 

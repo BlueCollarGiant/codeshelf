@@ -3,6 +3,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatButtonModule } from '@angular/material/button';
 import { SafeGitHubRepo } from '../../../core/models/github-repo.model';
 import { RepoScore } from '../../../core/models/repo-score.model';
+import { RepoType } from '../../../core/models/repo-type.model';
 import { RepoAiResult } from '../../../core/models/repo-ai-result.model';
 import { SuggestionBadgeComponent } from '../suggestion-badge/suggestion-badge';
 import { RelativeDatePipe } from '../../pipes/relative-date.pipe';
@@ -55,6 +56,11 @@ import { RelativeDatePipe } from '../../pipes/relative-date.pipe';
         </div>
 
         <div class="repo-card__meta">
+          @if (score(); as s) {
+            <span class="repo-card__meta-item repo-card__meta-item--type" [class]="typeChipClass(s.classification.type)">
+              {{ s.classification.label }}
+            </span>
+          }
           @if (repo().language) {
             <span class="repo-card__meta-item">{{ repo().language }}</span>
           }
@@ -208,6 +214,16 @@ import { RelativeDatePipe } from '../../pipes/relative-date.pipe';
       border-radius: var(--radius-full);
       background: color-mix(in srgb, var(--bg-inset) 65%, transparent);
     }
+    .repo-card__meta-item--type { font-weight: var(--font-weight-semibold); }
+    .type--profile   { color: var(--color-primary);    border-color: var(--color-primary);    background: color-mix(in srgb, var(--color-primary) 8%, transparent); }
+    .type--portfolio { color: var(--color-success-fg); border-color: var(--color-success);    background: color-mix(in srgb, var(--color-success) 8%, transparent); }
+    .type--active    { color: var(--color-success-fg); border-color: var(--color-success);    background: color-mix(in srgb, var(--color-success) 8%, transparent); }
+    .type--config    { color: var(--text-secondary);   border-color: var(--border-subtle);    background: var(--bg-elevated); }
+    .type--template  { color: var(--color-primary);    border-color: var(--color-primary);    background: color-mix(in srgb, var(--color-primary) 8%, transparent); }
+    .type--fork      { color: var(--text-secondary);   border-color: var(--border-subtle);    background: var(--bg-elevated); }
+    .type--archived  { color: var(--text-muted);       border-color: var(--border-subtle);    background: var(--bg-inset); }
+    .type--old       { color: var(--color-warning-fg); border-color: var(--color-warning);    background: color-mix(in srgb, var(--color-warning) 8%, transparent); }
+    .type--experiment{ color: var(--text-secondary);   border-color: var(--border-subtle);    background: var(--bg-elevated); }
     .repo-card__suggestions {
       display: flex;
       flex-wrap: wrap;
@@ -299,5 +315,20 @@ export class RepoCardComponent {
 
   visibilityClass(): string {
     return `badge badge--${this.repo().visibility}`;
+  }
+
+  typeChipClass(type: RepoType): string {
+    const accentTypes: Partial<Record<RepoType, string>> = {
+      profile_repo:       'type--profile',
+      portfolio_project:  'type--portfolio',
+      active_project:     'type--active',
+      config_or_dotfiles: 'type--config',
+      template:           'type--template',
+      fork:               'type--fork',
+      archived:           'type--archived',
+      old_learning_repo:  'type--old',
+      experiment:         'type--experiment',
+    };
+    return accentTypes[type] ?? '';
   }
 }

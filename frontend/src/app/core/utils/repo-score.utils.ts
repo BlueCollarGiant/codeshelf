@@ -1,70 +1,149 @@
 import { SafeGitHubRepo } from '../models/github-repo.model';
 import { RepoScore } from '../models/repo-score.model';
 import { RepoSuggestion } from '../models/repo-suggestion.model';
+import { RepoClassification } from '../models/repo-type.model';
+import { classifyRepo } from './repo-classifier.utils';
 
+const MONTHS_6  =  6 * 30 * 24 * 60 * 60 * 1000;
 const MONTHS_12 = 12 * 30 * 24 * 60 * 60 * 1000;
-const MONTHS_6 = 6 * 30 * 24 * 60 * 60 * 1000;
 const MONTHS_24 = 24 * 30 * 24 * 60 * 60 * 1000;
 
 function ageMs(dateStr: string): number {
   return Date.now() - new Date(dateStr).getTime();
 }
 
-function completenessScore(repo: SafeGitHubRepo): number {
-  let score = 0;
-  if (repo.description) score += 25;
-  if (repo.language) score += 25;
-  if (repo.topics.length > 0) score += 25;
-  if (repo.licenseName) score += 25;
-  return score;
+// ─── Score functions per type ────────────────────────────────────────────────
+
+function scoreProfileRepo(repo: SafeGitHubRepo): { portfolio: number; cleanup: number; completeness: number; activity: number } {
+  let portfolio = 40; // base — profile repos have inherent value
+  if (repo.description) portfolio += 10;
+  if (repo.topics.length > 0) portfolio += 15;
+  if (ageMs(repo.updatedAt) < MONTHS_12) portfolio += 20;
+  if (repo.licenseName) portfolio += 5;
+
+  return {
+    portfolio: Math.min(100, portfolio),
+    cleanup: 0,   // never flag profile repo for cleanup
+    completeness: repo.description ? 60 : 30,
+    activity: ageMs(repo.updatedAt) < MONTHS_12 ? 50 : 10,
+  };
 }
 
-function activityScore(repo: SafeGitHubRepo): number {
+function scoreConfigRepo(repo: SafeGitHubRepo): { portfolio: number; cleanup: number; completeness: number; activity: number } {
+  return {
+    portfolio: repo.description ? 40 : 20,
+    cleanup: 0,   // config repos are intentional — never cleanup candidates
+    completeness: repo.description ? 50 : 25,
+    activity: ageMs(repo.updatedAt) < MONTHS_12 ? 40 : 10,
+  };
+}
+
+function scoreTemplateRepo(repo: SafeGitHubRepo): { portfolio: number; cleanup: number; completeness: number; activity: number } {
+  let portfolio = 30;
+  if (repo.description) portfolio += 20;
+  if (repo.language) portfolio += 15;
+  if (repo.stargazersCount > 0) portfolio += 20;
+  return {
+    portfolio: Math.min(100, portfolio),
+    cleanup: 0,
+    completeness: repo.description ? 60 : 30,
+    activity: ageMs(repo.updatedAt) < MONTHS_12 ? 40 : 10,
+  };
+}
+
+function scoreStandardRepo(repo: SafeGitHubRepo): { portfolio: number; cleanup: number; completeness: number; activity: number } {
+  // Portfolio
+  let portfolio = 0;
+  if (!repo.private)  portfolio += 20;
+  if (!repo.fork)     portfolio += 20;
+  if (!repo.archived) portfolio += 20;
+  if (repo.description) portfolio += 20; else portfolio -= 20;
+  if (repo.language)    portfolio += 10; else portfolio -= 10;
+  if (ageMs(repo.updatedAt) < MONTHS_12) portfolio += 10;
+  if (repo.archived) portfolio -= 20;
+  if (repo.fork)     portfolio -= 20;
+
+  // Cleanup
+  let cleanup = 0;
+  if (!repo.description) cleanup += 25;
+  if (ageMs(repo.updatedAt) > MONTHS_12 && repo.stargazersCount === 0 && repo.forksCount === 0) cleanup += 25;
+  if (repo.fork)     cleanup += 20;
+  if (repo.archived) cleanup += 20;
+  if (!repo.language) cleanup += 10;
+
+  // Completeness
+  let completeness = 0;
+  if (repo.description)    completeness += 25;
+  if (repo.language)        completeness += 25;
+  if (repo.topics.length > 0) completeness += 25;
+  if (repo.licenseName)    completeness += 25;
+
+  // Activity
   const age = ageMs(repo.updatedAt);
-  if (age < MONTHS_6) return 50;
-  if (age < MONTHS_12) return 30;
-  if (age < MONTHS_24) return 10;
-  return 0;
+  const activity = age < MONTHS_6 ? 50 : age < MONTHS_12 ? 30 : age < MONTHS_24 ? 10 : 0;
+
+  return {
+    portfolio:   Math.max(0, Math.min(100, portfolio)),
+    cleanup:     Math.max(0, Math.min(100, cleanup)),
+    completeness,
+    activity,
+  };
 }
 
-function portfolioScore(repo: SafeGitHubRepo): number {
-  let score = 0;
-  if (!repo.private) score += 20;
-  if (!repo.fork) score += 20;
-  if (!repo.archived) score += 20;
-  if (repo.description) score += 20;
-  else score -= 20;
-  if (repo.language) score += 10;
-  else score -= 10;
-  if (ageMs(repo.updatedAt) < MONTHS_12) score += 10;
-  if (repo.archived) score -= 20;
-  if (repo.fork) score -= 20;
-  return Math.max(0, Math.min(100, score));
-}
+// ─── Suggestion builder ───────────────────────────────────────────────────────
 
-function cleanupScore(repo: SafeGitHubRepo): number {
-  let score = 0;
-  if (!repo.description) score += 25;
-  if (ageMs(repo.updatedAt) > MONTHS_12 && repo.stargazersCount === 0 && repo.forksCount === 0) score += 25;
-  if (repo.fork) score += 20;
-  if (repo.archived) score += 20;
-  if (!repo.language) score += 10;
-  return Math.max(0, Math.min(100, score));
-}
+function buildSuggestions(repo: SafeGitHubRepo, classification: RepoClassification): RepoSuggestion[] {
+  const { type, protected: isProtected } = classification;
 
-function buildSuggestions(repo: SafeGitHubRepo): RepoSuggestion[] {
+  // Profile repo — special rules only
+  if (type === 'profile_repo') {
+    const suggestions: RepoSuggestion[] = [
+      { type: 'profile_repo', label: 'Profile repo', severity: 'info', reason: 'This is your GitHub profile README repo. It should not be deleted.' },
+    ];
+    if (!repo.description) {
+      suggestions.push({ type: 'improve_readme', label: 'Improve profile', severity: 'warning', reason: 'Adding a description and topics helps visitors understand who you are.' });
+    }
+    if (ageMs(repo.updatedAt) > MONTHS_12) {
+      suggestions.push({ type: 'improve_readme', label: 'Update profile', severity: 'warning', reason: 'Your profile README hasn\'t been updated in over a year.' });
+    }
+    return suggestions;
+  }
+
+  // Config / dotfiles — never cleanup
+  if (type === 'config_or_dotfiles') {
+    const suggestions: RepoSuggestion[] = [
+      { type: 'config_repo', label: 'Config repo', severity: 'info', reason: 'Personal config or dotfiles repo — protected from cleanup suggestions.' },
+    ];
+    if (!repo.description) {
+      suggestions.push({ type: 'needs_description', label: 'No description', severity: 'warning', reason: 'A short description helps others understand what your config covers.' });
+    }
+    return suggestions;
+  }
+
+  // Template repo
+  if (type === 'template') {
+    const suggestions: RepoSuggestion[] = [
+      { type: 'template_repo', label: 'Template', severity: 'info', reason: 'This is a template repo — scored for reusability, not cleanup.' },
+    ];
+    if (!repo.description) {
+      suggestions.push({ type: 'needs_description', label: 'No description', severity: 'warning', reason: 'Templates without descriptions are hard for others to evaluate.' });
+    }
+    return suggestions;
+  }
+
+  // Archived
+  if (repo.archived) {
+    return [{ type: 'already_archived', label: 'Archived', severity: 'info', reason: 'This repo is archived — read-only and already marked inactive.' }];
+  }
+
+  // Private
+  if (repo.private) {
+    return [{ type: 'keep_private', label: 'Private', severity: 'info', reason: 'This repo is private.' }];
+  }
+
+  // Standard scoring path
   const suggestions: RepoSuggestion[] = [];
   const age = ageMs(repo.updatedAt);
-
-  if (repo.archived) {
-    suggestions.push({ type: 'already_archived', label: 'Archived', severity: 'info', reason: 'This repo is already archived.' });
-    return suggestions;
-  }
-
-  if (repo.private) {
-    suggestions.push({ type: 'keep_private', label: 'Private', severity: 'info', reason: 'This repo is private.' });
-    return suggestions;
-  }
 
   const isPortfolioCandidate =
     !repo.private && !repo.archived && !repo.fork &&
@@ -79,7 +158,7 @@ function buildSuggestions(repo: SafeGitHubRepo): RepoSuggestion[] {
   }
 
   if (repo.fork) {
-    suggestions.push({ type: 'fork_review', label: 'Fork', severity: 'warning', reason: 'Forks on your profile can dilute your portfolio unless you have made meaningful changes.' });
+    suggestions.push({ type: 'fork_review', label: 'Fork', severity: 'warning', reason: 'Forks on your profile can dilute your portfolio unless you\'ve made meaningful changes.' });
   }
 
   if (!repo.private && !repo.archived && age > MONTHS_12 && repo.stargazersCount === 0 && repo.forksCount === 0) {
@@ -93,13 +172,31 @@ function buildSuggestions(repo: SafeGitHubRepo): RepoSuggestion[] {
   return suggestions;
 }
 
-export function scoreRepo(repo: SafeGitHubRepo): RepoScore {
+// ─── Public API ───────────────────────────────────────────────────────────────
+
+export function scoreRepo(repo: SafeGitHubRepo, ownerLogin: string = ''): RepoScore {
+  const classification = classifyRepo(repo, ownerLogin);
+  const { type } = classification;
+
+  let scores: { portfolio: number; cleanup: number; completeness: number; activity: number };
+
+  if (type === 'profile_repo') {
+    scores = scoreProfileRepo(repo);
+  } else if (type === 'config_or_dotfiles') {
+    scores = scoreConfigRepo(repo);
+  } else if (type === 'template') {
+    scores = scoreTemplateRepo(repo);
+  } else {
+    scores = scoreStandardRepo(repo);
+  }
+
   return {
-    repoId: repo.id,
-    completenessScore: completenessScore(repo),
-    activityScore: activityScore(repo),
-    portfolioScore: portfolioScore(repo),
-    cleanupScore: cleanupScore(repo),
-    suggestions: buildSuggestions(repo),
+    repoId:           repo.id,
+    classification,
+    portfolioScore:   scores.portfolio,
+    cleanupScore:     scores.cleanup,
+    activityScore:    scores.activity,
+    completenessScore: scores.completeness,
+    suggestions:      buildSuggestions(repo, classification),
   };
 }
