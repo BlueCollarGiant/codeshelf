@@ -105,6 +105,8 @@ import { RelativeDatePipe } from '../../pipes/relative-date.pipe';
       box-shadow: var(--card-shadow);
       transition: border-color var(--duration-fast) var(--ease-default),
                   background var(--duration-fast) var(--ease-default);
+      overflow: hidden;
+      min-width: 0;
     }
     .repo-card:hover {
       background: var(--card-bg-hover);
@@ -148,6 +150,7 @@ import { RelativeDatePipe } from '../../pipes/relative-date.pipe';
       gap: var(--space-1);
       flex-wrap: wrap;
       margin-left: auto;
+      flex-shrink: 0;
     }
     .repo-card__description {
       font-size: var(--font-size-sm);
