@@ -61,7 +61,7 @@ type ActionState = 'idle' | 'warning' | 'executing' | 'results';
       <section class="repos-page__controls">
         <mat-form-field appearance="outline" subscriptSizing="dynamic" class="controls__search">
           <mat-label>Search repos</mat-label>
-          <input matInput [value]="searchQuery()" (input)="searchQuery.set($any($event.target).value)" placeholder="Filter by name…" />
+          <input matInput [value]="searchQuery()" (input)="onSearchInput($event)" placeholder="Filter by name…" />
         </mat-form-field>
 
         <mat-form-field appearance="outline" subscriptSizing="dynamic" class="controls__sort">
@@ -420,6 +420,10 @@ export class ReposComponent implements OnInit {
     this.pendingAction.set(null);
     this.selectedIds.set(new Set());
     await this.refresh();
+  }
+
+  onSearchInput(event: Event): void {
+    this.searchQuery.set((event.target as HTMLInputElement).value);
   }
 
   selectAll(): void   { this.selectedIds.set(new Set(this.filteredAndSorted().map(r => r.id))); }
