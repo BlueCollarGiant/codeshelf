@@ -23,25 +23,25 @@ import { RouterLink } from '@angular/router';
       justify-content: space-between;
       padding: 0 var(--space-6);
       height: 56px;
-      background: var(--surface-nav);
+      background: var(--bg-sidebar);
       border-bottom: 1px solid var(--border-subtle);
     }
     .app-header__logo {
-      font-size: var(--text-lg);
-      font-weight: 600;
+      font-size: var(--font-size-lg);
+      font-weight: var(--font-weight-semibold);
       color: var(--text-primary);
       text-decoration: none;
-      letter-spacing: -0.01em;
+      letter-spacing: var(--tracking-tight);
     }
     .app-header__nav {
       display: flex;
       gap: var(--space-4);
     }
     .app-header__nav-link {
-      font-size: var(--text-sm);
+      font-size: var(--font-size-sm);
       color: var(--text-secondary);
       text-decoration: none;
-      transition: color 150ms ease;
+      transition: color var(--duration-fast) var(--ease-default);
     }
     .app-header__nav-link:hover {
       color: var(--text-primary);

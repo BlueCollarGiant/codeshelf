@@ -1,0 +1,76 @@
+/* =============================================================
+   CodeShelf — Shared Component Utility Classes
+   Import after base.css. All values from tokens only.
+   Phase 2 fills these stubs with actual component classes.
+   ============================================================= */
+
+/* Visibility badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--badge-padding-y) var(--badge-padding-x);
+  border-radius: var(--badge-radius);
+  font-size: var(--badge-font-size);
+  font-weight: var(--badge-font-weight);
+  letter-spacing: var(--badge-tracking);
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.badge--public {
+  background: var(--badge-public-bg);
+  color: var(--badge-public-fg);
+}
+
+.badge--private {
+  background: var(--badge-private-bg);
+  color: var(--badge-private-fg);
+}
+
+.badge--archived {
+  background: var(--badge-archived-bg);
+  color: var(--badge-archived-fg);
+}
+
+/* Suggestion badges */
+.badge--danger {
+  background: var(--color-danger-bg);
+  color: var(--color-danger-fg);
+}
+
+.badge--warning {
+  background: var(--color-warning-bg);
+  color: var(--color-warning-fg);
+}
+
+.badge--portfolio {
+  background: var(--color-portfolio-bg);
+  color: var(--color-portfolio-fg);
+}
+
+/* Stat chip */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--chip-padding-y) var(--chip-padding-x);
+  background: var(--chip-bg);
+  border: 1px solid var(--chip-border);
+  border-radius: var(--chip-radius);
+  font-size: var(--chip-font-size);
+  font-weight: var(--chip-font-weight);
+  color: var(--text-secondary);
+}
+
+/* Screen reader only */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

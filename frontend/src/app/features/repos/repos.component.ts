@@ -16,13 +16,13 @@ import { Component, ChangeDetectionStrategy } from '@angular/core';
       margin: 0 auto;
     }
     .repos-page__title {
-      font-size: var(--text-2xl);
-      font-weight: 600;
+      font-size: var(--font-size-2xl);
+      font-weight: var(--font-weight-semibold);
       color: var(--text-primary);
       margin-bottom: var(--space-4);
     }
     .repos-page__body {
-      font-size: var(--text-base);
+      font-size: var(--font-size-base);
       color: var(--text-secondary);
     }
   `]

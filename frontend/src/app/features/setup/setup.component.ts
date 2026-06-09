@@ -16,21 +16,22 @@ import { Component, ChangeDetectionStrategy } from '@angular/core';
       margin: 0 auto;
     }
     .setup-page__title {
-      font-size: var(--text-2xl);
-      font-weight: 600;
+      font-size: var(--font-size-2xl);
+      font-weight: var(--font-weight-semibold);
       color: var(--text-primary);
       margin-bottom: var(--space-4);
     }
     .setup-page__body {
-      font-size: var(--text-base);
+      font-size: var(--font-size-base);
       color: var(--text-secondary);
     }
     code {
-      font-size: var(--text-sm);
-      background: var(--surface-card);
+      font-size: var(--font-size-sm);
+      background: var(--bg-surface);
       padding: 2px 6px;
       border-radius: var(--radius-sm);
       color: var(--text-primary);
+      font-family: var(--font-family-mono);
     }
   `]
 })

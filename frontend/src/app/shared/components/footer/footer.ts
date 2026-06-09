@@ -11,12 +11,12 @@ import { Component, ChangeDetectionStrategy } from '@angular/core';
   styles: [`
     .app-footer {
       padding: var(--space-4) var(--space-6);
-      background: var(--surface-nav);
+      background: var(--bg-sidebar);
       border-top: 1px solid var(--border-subtle);
       text-align: center;
     }
     .app-footer__text {
-      font-size: var(--text-xs);
+      font-size: var(--font-size-xs);
       color: var(--text-muted);
     }
   `]
