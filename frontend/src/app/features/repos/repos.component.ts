@@ -1,19 +1,22 @@
-import { Component, ChangeDetectionStrategy, signal, computed, OnInit } from '@angular/core';
+import { Component, ChangeDetectionStrategy, signal, computed, inject, OnInit } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatIconModule } from '@angular/material/icon';
 import { SafeGitHubRepo } from '../../core/models/github-repo.model';
 import { RepoScore } from '../../core/models/repo-score.model';
 import { DashboardStats } from '../../core/models/dashboard-stats.model';
 import { scoreRepo } from '../../core/utils/repo-score.utils';
+import { RepoApiService } from '../../core/services/repo-api.service';
 import { RepoCardComponent } from '../../shared/components/repo-card/repo-card';
 import { StatCardComponent } from '../../shared/components/stat-card/stat-card';
 import { LoadingStateComponent } from '../../shared/components/loading-state/loading-state';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state';
-import { FAKE_REPOS } from '../../../dev/fake-repos';
+import { ErrorStateComponent } from '../../shared/components/error-state/error-state';
 
 type SortKey = 'updated' | 'stars' | 'forks' | 'name' | 'portfolio' | 'cleanup';
+type LoadState = 'loading' | 'loaded' | 'error-offline' | 'error-token' | 'error-ratelimit';
 
 @Component({
   selector: 'app-repos',
@@ -22,10 +25,12 @@ type SortKey = 'updated' | 'stars' | 'forks' | 'name' | 'portfolio' | 'cleanup';
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
+    MatIconModule,
     RepoCardComponent,
     StatCardComponent,
     LoadingStateComponent,
     EmptyStateComponent,
+    ErrorStateComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -64,57 +69,82 @@ type SortKey = 'updated' | 'stars' | 'forks' | 'name' | 'portfolio' | 'cleanup';
         <button mat-stroked-button (click)="selectAll()">Select all</button>
         <button mat-stroked-button (click)="deselectAll()">Deselect all</button>
 
-        <button mat-flat-button color="primary" class="controls__analyse">
+        <button mat-stroked-button (click)="refresh()" [disabled]="loadState() === 'loading'" class="controls__refresh">
+          <mat-icon>refresh</mat-icon>
+        </button>
+
+        <button mat-flat-button color="primary" class="controls__analyse" disabled>
           Analyse Public Repos
         </button>
       </section>
 
-      @if (loading()) {
-        <app-loading-state />
-      } @else {
+      @switch (loadState()) {
+        @case ('loading') {
+          <app-loading-state />
+        }
+        @case ('error-offline') {
+          <app-error-state
+            message="Cannot reach the backend. Make sure npm run dev is running."
+            [showRetry]="true"
+            (retry)="refresh()"
+          />
+        }
+        @case ('error-token') {
+          <app-error-state
+            message="GitHub token missing or invalid. Check your .env file and restart the server."
+            [showRetry]="false"
+          />
+        }
+        @case ('error-ratelimit') {
+          <app-error-state
+            message="GitHub rate limit exceeded. Wait a few minutes and try again."
+            [showRetry]="true"
+            (retry)="refresh()"
+          />
+        }
+        @default {
+          <!-- Public section -->
+          <section class="repos-page__section">
+            <h2 class="repos-page__section-title">
+              Public <span class="repos-page__count">{{ filteredPublic().length }}</span>
+            </h2>
+            @if (filteredPublic().length === 0) {
+              <app-empty-state message="No public repos match your filter." />
+            } @else {
+              <div class="repos-page__list">
+                @for (repo of filteredPublic(); track repo.id) {
+                  <app-repo-card
+                    [repo]="repo"
+                    [score]="scoreMap()[repo.id] ?? null"
+                    [selected]="selectedIds().has(repo.id)"
+                    (selectionChange)="toggleSelection(repo.id, $event)"
+                  />
+                }
+              </div>
+            }
+          </section>
 
-        <!-- Public section -->
-        <section class="repos-page__section">
-          <h2 class="repos-page__section-title">
-            Public <span class="repos-page__count">{{ filteredPublic().length }}</span>
-          </h2>
-          @if (filteredPublic().length === 0) {
-            <app-empty-state message="No public repos match your filter." />
-          } @else {
-            <div class="repos-page__list">
-              @for (repo of filteredPublic(); track repo.id) {
-                <app-repo-card
-                  [repo]="repo"
-                  [score]="scoreMap()[repo.id] ?? null"
-                  [selected]="selectedIds().has(repo.id)"
-                  (selectionChange)="toggleSelection(repo.id, $event)"
-                />
-              }
-            </div>
-          }
-        </section>
-
-        <!-- Private section -->
-        <section class="repos-page__section">
-          <h2 class="repos-page__section-title">
-            Private <span class="repos-page__count">{{ filteredPrivate().length }}</span>
-          </h2>
-          @if (filteredPrivate().length === 0) {
-            <app-empty-state message="No private repos match your filter." />
-          } @else {
-            <div class="repos-page__list">
-              @for (repo of filteredPrivate(); track repo.id) {
-                <app-repo-card
-                  [repo]="repo"
-                  [score]="scoreMap()[repo.id] ?? null"
-                  [selected]="selectedIds().has(repo.id)"
-                  (selectionChange)="toggleSelection(repo.id, $event)"
-                />
-              }
-            </div>
-          }
-        </section>
-
+          <!-- Private section -->
+          <section class="repos-page__section">
+            <h2 class="repos-page__section-title">
+              Private <span class="repos-page__count">{{ filteredPrivate().length }}</span>
+            </h2>
+            @if (filteredPrivate().length === 0) {
+              <app-empty-state message="No private repos match your filter." />
+            } @else {
+              <div class="repos-page__list">
+                @for (repo of filteredPrivate(); track repo.id) {
+                  <app-repo-card
+                    [repo]="repo"
+                    [score]="scoreMap()[repo.id] ?? null"
+                    [selected]="selectedIds().has(repo.id)"
+                    (selectionChange)="toggleSelection(repo.id, $event)"
+                  />
+                }
+              </div>
+            }
+          </section>
+        }
       }
     </div>
   `,
@@ -140,6 +170,7 @@ type SortKey = 'updated' | 'stars' | 'forks' | 'name' | 'portfolio' | 'cleanup';
     }
     .controls__search { flex: 1; min-width: var(--controls-search-min-width); }
     .controls__sort { width: var(--controls-sort-width); }
+    .controls__refresh { min-width: unset; }
     .controls__analyse { margin-left: auto; white-space: nowrap; }
     .repos-page__section { display: flex; flex-direction: column; gap: var(--space-3); }
     .repos-page__section-title {
@@ -163,7 +194,9 @@ type SortKey = 'updated' | 'stars' | 'forks' | 'name' | 'portfolio' | 'cleanup';
   `]
 })
 export class ReposComponent implements OnInit {
-  readonly loading = signal(true);
+  private readonly api = inject(RepoApiService);
+
+  readonly loadState = signal<LoadState>('loading');
   readonly repos = signal<SafeGitHubRepo[]>([]);
   readonly selectedIds = signal<Set<number>>(new Set());
   readonly searchQuery = signal('');
@@ -201,15 +234,15 @@ export class ReposComponent implements OnInit {
     const key = this.sortKey();
     const scores = this.scoreMap();
 
-    let list = this.repos().filter(r =>
+    const list = this.repos().filter(r =>
       !q || r.name.toLowerCase().includes(q) || r.fullName.toLowerCase().includes(q)
     );
 
     return [...list].sort((a, b) => {
-      if (key === 'updated') return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
-      if (key === 'stars')   return b.stargazersCount - a.stargazersCount;
-      if (key === 'forks')   return b.forksCount - a.forksCount;
-      if (key === 'name')    return a.name.localeCompare(b.name);
+      if (key === 'updated')   return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+      if (key === 'stars')     return b.stargazersCount - a.stargazersCount;
+      if (key === 'forks')     return b.forksCount - a.forksCount;
+      if (key === 'name')      return a.name.localeCompare(b.name);
       if (key === 'portfolio') return (scores[b.id]?.portfolioScore ?? 0) - (scores[a.id]?.portfolioScore ?? 0);
       if (key === 'cleanup')   return (scores[b.id]?.cleanupScore ?? 0) - (scores[a.id]?.cleanupScore ?? 0);
       return 0;
@@ -219,11 +252,32 @@ export class ReposComponent implements OnInit {
   readonly filteredPublic  = computed(() => this.filteredAndSorted().filter(r => !r.private));
   readonly filteredPrivate = computed(() => this.filteredAndSorted().filter(r => r.private));
 
-  ngOnInit(): void {
-    setTimeout(() => {
-      this.repos.set(FAKE_REPOS);
-      this.loading.set(false);
-    }, 600);
+  async ngOnInit(): Promise<void> {
+    await this.loadRepos();
+  }
+
+  async refresh(): Promise<void> {
+    this.loadState.set('loading');
+    this.repos.set([]);
+    this.selectedIds.set(new Set());
+    await this.loadRepos();
+  }
+
+  private async loadRepos(): Promise<void> {
+    try {
+      const repos = await this.api.getRepos();
+      this.repos.set(repos);
+      this.loadState.set('loaded');
+    } catch (err: unknown) {
+      const status = (err as { status?: number }).status;
+      if (status === 401) {
+        this.loadState.set('error-token');
+      } else if (status === 429) {
+        this.loadState.set('error-ratelimit');
+      } else {
+        this.loadState.set('error-offline');
+      }
+    }
   }
 
   toggleSelection(id: number, checked: boolean): void {

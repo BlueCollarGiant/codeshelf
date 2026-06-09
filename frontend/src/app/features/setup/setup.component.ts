@@ -1,7 +1,12 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, signal, inject, OnInit } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
 import { RouterLink } from '@angular/router';
+import { RepoApiService } from '../../core/services/repo-api.service';
+import { GitHubStatus } from '../../core/models/github-status.model';
+import { GitHubUser } from '../../core/models/github-user.model';
+
+type StatusState = 'loading' | 'ok' | 'error' | 'unknown';
 
 @Component({
   selector: 'app-setup',
@@ -16,16 +21,34 @@ import { RouterLink } from '@angular/router';
 
       <section class="setup-page__status">
         <h2 class="setup-page__section-title">Connection Status</h2>
+
         <div class="status-row">
-          <span class="status-indicator status-indicator--unknown"></span>
+          <span class="status-indicator" [class]="tokenIndicatorClass()"></span>
           <span class="status-label">GitHub Token</span>
-          <span class="status-value">Not connected — add <code>GITHUB_TOKEN</code> to <code>.env</code></span>
+          <span class="status-value">{{ tokenStatusText() }}</span>
         </div>
+
+        @if (user()) {
+          <div class="status-row">
+            <span class="status-indicator status-indicator--ok"></span>
+            <span class="status-label">GitHub User</span>
+            <span class="status-value">{{ user()!.name || user()!.login }}</span>
+          </div>
+        }
+
         <div class="status-row">
           <span class="status-indicator status-indicator--unknown"></span>
           <span class="status-label">AI Provider</span>
           <span class="status-value">Not configured — optional for Phase 6+</span>
         </div>
+
+        @if (status()?.rateLimitRemaining !== null && status()?.tokenValid) {
+          <div class="status-row">
+            <span class="status-indicator status-indicator--ok"></span>
+            <span class="status-label">Rate Limit</span>
+            <span class="status-value">{{ status()!.rateLimitRemaining }} requests remaining</span>
+          </div>
+        }
       </section>
 
       <mat-divider />
@@ -100,6 +123,7 @@ import { RouterLink } from '@angular/router';
     .status-indicator--ok      { background: var(--color-success); }
     .status-indicator--error   { background: var(--color-danger); }
     .status-indicator--unknown { background: var(--color-neutral-500); }
+    .status-indicator--loading { background: var(--color-neutral-500); opacity: 0.5; }
     .status-label {
       font-size: var(--font-size-sm);
       font-weight: var(--font-weight-semibold);
@@ -127,7 +151,7 @@ import { RouterLink } from '@angular/router';
       background: var(--code-bg);
       color: var(--code-fg);
       border-radius: var(--code-radius);
-      font-family: var(--code-font);
+      font-family: var(--font-family-mono);
       font-size: var(--code-size);
       overflow-x: auto;
     }
@@ -142,4 +166,40 @@ import { RouterLink } from '@angular/router';
     .setup-page__cta { display: flex; justify-content: center; }
   `]
 })
-export class SetupComponent {}
+export class SetupComponent implements OnInit {
+  private readonly api = inject(RepoApiService);
+
+  readonly status = signal<GitHubStatus | null>(null);
+  readonly user = signal<GitHubUser | null>(null);
+  readonly tokenState = signal<StatusState>('loading');
+
+  readonly tokenIndicatorClass = () => {
+    const state = this.tokenState();
+    return `status-indicator status-indicator--${state}`;
+  };
+
+  readonly tokenStatusText = () => {
+    const state = this.tokenState();
+    const s = this.status();
+    if (state === 'loading') return 'Checking…';
+    if (state === 'error')   return 'Backend offline — is npm run dev running?';
+    if (!s?.tokenPresent)    return 'Not found — add GITHUB_TOKEN to .env';
+    if (!s?.tokenValid)      return 'Invalid or expired — check your token in .env';
+    return 'Connected';
+  };
+
+  async ngOnInit(): Promise<void> {
+    try {
+      const s = await this.api.getStatus();
+      this.status.set(s);
+      this.tokenState.set(s.tokenValid ? 'ok' : s.tokenPresent ? 'error' : 'error');
+
+      if (s.tokenValid) {
+        const u = await this.api.getUser();
+        this.user.set(u);
+      }
+    } catch {
+      this.tokenState.set('error');
+    }
+  }
+}
