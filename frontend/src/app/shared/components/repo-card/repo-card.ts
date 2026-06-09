@@ -74,9 +74,9 @@ import { RelativeDatePipe } from '../../pipes/relative-date.pipe';
         </div>
 
         @if (score(); as s) {
-          <div class="repo-card__suggestions">
-            <app-suggestion-badge [suggestions]="s.suggestions" />
-            @if (!isDismissed()) {
+          @if (!isDismissed()) {
+            <div class="repo-card__suggestions">
+              <app-suggestion-badge [suggestions]="s.suggestions" />
               <button class="dismiss-btn" title="Dismiss suggestions" aria-label="Dismiss suggestions" (click)="onDismiss()">
                 <svg class="dismiss-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/>
@@ -85,10 +85,18 @@ import { RelativeDatePipe } from '../../pipes/relative-date.pipe';
                   <line x1="2" y1="2" x2="22" y2="22"/>
                 </svg>
               </button>
-            } @else {
-              <button class="restore-btn" (click)="onRestore()">Restore</button>
-            }
-          </div>
+            </div>
+          } @else {
+            <div class="repo-card__dismissed">
+              <span class="dismissed-label">Suggestions hidden</span>
+              <button class="restore-btn" (click)="onRestore()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="restore-icon" aria-hidden="true">
+                  <path d="M2.5 2v6h6"/><path d="M2.66 15.57a10 10 0 1 0 .57-8.38"/>
+                </svg>
+                Restore
+              </button>
+            </div>
+          }
         }
 
         @if (aiResult(); as ai) {
@@ -266,11 +274,34 @@ import { RelativeDatePipe } from '../../pipes/relative-date.pipe';
       height: 16px;
       flex-shrink: 0;
     }
+    .repo-card__dismissed {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-1) 0;
+    }
+    .dismissed-label {
+      font-size: var(--font-size-xs);
+      color: var(--text-muted);
+      font-style: italic;
+    }
     .restore-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-1);
       margin-left: auto;
       font-size: var(--font-size-xs);
       color: var(--text-muted);
+      background: transparent;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-full);
+      padding: var(--space-1) var(--space-2);
+      cursor: pointer;
+      transition: color var(--duration-fast) var(--ease-default),
+                  border-color var(--duration-fast) var(--ease-default);
     }
+    .restore-btn:hover { color: var(--text-primary); border-color: var(--color-primary); }
+    .restore-icon { width: 12px; height: 12px; flex-shrink: 0; }
     .repo-card__ai {
       display: flex;
       flex-direction: column;
