@@ -196,13 +196,10 @@ type DeleteState = 'idle' | 'confirming' | 'executing' | 'results';
                     [score]="scoreMap()[repo.id] ?? null"
                     [aiResult]="aiResults()[repo.id] ?? null"
                     [selected]="selectedIds().has(repo.id)"
-                    [dismissed]="analysis.dismissed().has(repo.id)"
                     [deleteMode]="deleteToggleEnabled()"
                     [markedForDelete]="deleteSelectedIds().has(repo.id)"
                     (selectionChange)="toggleSelection(repo.id, $event)"
                     (deleteChange)="toggleDeleteSelection(repo.id, $event)"
-                    (dismiss)="analysis.dismiss(repo.id)"
-                    (restore)="analysis.restore(repo.id)"
                   />
                 }
               </div>
@@ -222,13 +219,10 @@ type DeleteState = 'idle' | 'confirming' | 'executing' | 'results';
                     [repo]="repo"
                     [score]="scoreMap()[repo.id] ?? null"
                     [selected]="selectedIds().has(repo.id)"
-                    [dismissed]="analysis.dismissed().has(repo.id)"
                     [deleteMode]="deleteToggleEnabled()"
                     [markedForDelete]="deleteSelectedIds().has(repo.id)"
                     (selectionChange)="toggleSelection(repo.id, $event)"
                     (deleteChange)="toggleDeleteSelection(repo.id, $event)"
-                    (dismiss)="analysis.dismiss(repo.id)"
-                    (restore)="analysis.restore(repo.id)"
                   />
                 }
               </div>
@@ -328,86 +322,6 @@ type DeleteState = 'idle' | 'confirming' | 'executing' | 'results';
     .controls__analyse,
     .controls__refresh {
       white-space: nowrap;
-    }
-    .delete-toggle {
-      position: relative;
-      display: flex;
-      align-items: center;
-      gap: var(--space-3);
-      padding: var(--space-2) var(--space-3);
-      border-radius: var(--radius-md);
-      border: 1px solid var(--border-subtle);
-      min-height: var(--space-10);
-      color: var(--text-secondary);
-      cursor: pointer;
-      user-select: none;
-      transition: background var(--duration-fast) var(--ease-default),
-                  border-color var(--duration-fast) var(--ease-default);
-    }
-    .delete-toggle:hover {
-      border-color: var(--border-default);
-      background: color-mix(in srgb, var(--bg-elevated) 40%, transparent);
-    }
-    .delete-toggle:focus-within {
-      border-color: var(--ring-color);
-      box-shadow: 0 0 0 var(--ring-width) color-mix(in srgb, var(--ring-color) 24%, transparent);
-    }
-    .delete-toggle--active {
-      border-color: var(--color-danger);
-      background: var(--color-danger-bg);
-    }
-    .delete-toggle--active:hover {
-      border-color: var(--color-danger);
-      background: color-mix(in srgb, var(--color-danger-bg) 75%, var(--bg-elevated));
-    }
-    .delete-toggle__input {
-      position: absolute;
-      width: var(--space-px);
-      height: var(--space-px);
-      opacity: 0;
-      pointer-events: none;
-    }
-    .delete-toggle__switch {
-      position: relative;
-      display: inline-flex;
-      align-items: center;
-      width: var(--delete-toggle-switch-width);
-      height: var(--delete-toggle-switch-height);
-      flex-shrink: 0;
-      border: 1px solid var(--delete-toggle-border);
-      border-radius: var(--radius-full);
-      background: var(--delete-toggle-bg);
-      transition: background var(--duration-fast) var(--ease-default),
-                  border-color var(--duration-fast) var(--ease-default);
-    }
-    .delete-toggle__thumb {
-      position: absolute;
-      left: var(--space-1);
-      width: var(--delete-toggle-thumb-size);
-      height: var(--delete-toggle-thumb-size);
-      border-radius: var(--radius-full);
-      background: var(--delete-toggle-fg);
-      transition: transform var(--duration-fast) var(--ease-default),
-                  background var(--duration-fast) var(--ease-default);
-    }
-    .delete-toggle--active .delete-toggle__switch {
-      border-color: var(--delete-toggle-border-active);
-      background: var(--delete-toggle-bg-active);
-    }
-    .delete-toggle--active .delete-toggle__thumb {
-      background: var(--delete-toggle-fg-active);
-      transform: translateX(var(--delete-toggle-thumb-translate));
-    }
-    .delete-toggle__label {
-      color: var(--text-primary);
-      font-size: var(--font-size-sm);
-      font-weight: var(--font-weight-medium);
-      white-space: nowrap;
-    }
-    .delete-toggle__warning {
-      font-size: var(--font-size-xs);
-      color: var(--color-danger-fg);
-      font-weight: var(--font-weight-semibold);
     }
     .action-bar {
       display: flex;
