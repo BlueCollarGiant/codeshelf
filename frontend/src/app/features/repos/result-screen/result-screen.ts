@@ -1,19 +1,20 @@
 import { Component, ChangeDetectionStrategy, input, output, computed } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
 import { VisibilityResult } from '../../../core/models/action-result.model';
 
 @Component({
   selector: 'app-result-screen',
-  imports: [MatButtonModule, MatIconModule],
+  imports: [MatButtonModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="result-overlay">
       <div class="result-dialog">
         <div class="result-dialog__header">
-          <mat-icon class="result-icon" [class.result-icon--success]="allSucceeded()" [class.result-icon--partial]="!allSucceeded()">
-            {{ allSucceeded() ? 'check_circle' : 'warning' }}
-          </mat-icon>
+          @if (allSucceeded()) {
+            <svg class="result-icon result-icon--success" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          } @else {
+            <svg class="result-icon result-icon--partial" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          }
           <h2 class="result-title">
             {{ allSucceeded() ? 'Action Complete' : 'Action Completed with Errors' }}
           </h2>
@@ -22,11 +23,13 @@ import { VisibilityResult } from '../../../core/models/action-result.model';
         <div class="result-body">
           <div class="result-summary">
             <span class="result-stat result-stat--success">
-              <mat-icon>check</mat-icon> {{ succeeded().length }} succeeded
+              <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+              {{ succeeded().length }} succeeded
             </span>
             @if (failed().length > 0) {
               <span class="result-stat result-stat--failure">
-                <mat-icon>close</mat-icon> {{ failed().length }} failed
+                <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                {{ failed().length }} failed
               </span>
             }
           </div>
@@ -37,7 +40,7 @@ import { VisibilityResult } from '../../../core/models/action-result.model';
               <ul class="result-list">
                 @for (r of succeeded(); track r.fullName) {
                   <li class="result-item result-item--success">
-                    <mat-icon>check_circle</mat-icon>
+                    <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
                     <span class="result-name">{{ r.fullName }}</span>
                     <span class="result-action">→ {{ r.visibility }}</span>
                   </li>
@@ -52,7 +55,7 @@ import { VisibilityResult } from '../../../core/models/action-result.model';
               <ul class="result-list">
                 @for (r of failed(); track r.fullName) {
                   <li class="result-item result-item--failure">
-                    <mat-icon>error</mat-icon>
+                    <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                     <span class="result-name">{{ r.fullName }}</span>
                     <span class="result-error">{{ r.message }}</span>
                   </li>
@@ -99,7 +102,7 @@ import { VisibilityResult } from '../../../core/models/action-result.model';
       background: var(--bg-elevated);
       border-radius: var(--radius-lg) var(--radius-lg) 0 0;
     }
-    .result-icon { font-size: var(--font-size-2xl); color: var(--text-muted); }
+    .result-icon { width: 28px; height: 28px; flex-shrink: 0; }
     .result-icon--success { color: var(--color-success); }
     .result-icon--partial { color: var(--color-warning-fg, #f59e0b); }
     .result-title {
@@ -117,7 +120,7 @@ import { VisibilityResult } from '../../../core/models/action-result.model';
       font-size: var(--font-size-sm);
       font-weight: var(--font-weight-semibold);
     }
-    .result-stat mat-icon { font-size: var(--font-size-base); }
+    .stat-icon { width: 14px; height: 14px; flex-shrink: 0; }
     .result-stat--success { color: var(--color-success); }
     .result-stat--failure { color: var(--color-danger-fg); }
     .result-section { display: flex; flex-direction: column; gap: var(--space-2); }
@@ -129,14 +132,7 @@ import { VisibilityResult } from '../../../core/models/action-result.model';
       letter-spacing: var(--tracking-wide);
       margin: 0;
     }
-    .result-list {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-1);
-    }
+    .result-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: var(--space-1); }
     .result-item {
       display: flex;
       align-items: center;
@@ -145,11 +141,11 @@ import { VisibilityResult } from '../../../core/models/action-result.model';
       border-radius: var(--radius-sm);
       font-size: var(--font-size-sm);
     }
+    .item-icon { width: 16px; height: 16px; flex-shrink: 0; }
     .result-item--success { background: var(--color-success-bg, rgba(34,197,94,0.08)); }
+    .result-item--success .item-icon { color: var(--color-success); }
     .result-item--failure { background: var(--color-danger-bg); }
-    .result-item mat-icon { font-size: var(--font-size-base); flex-shrink: 0; }
-    .result-item--success mat-icon { color: var(--color-success); }
-    .result-item--failure mat-icon { color: var(--color-danger-fg); }
+    .result-item--failure .item-icon { color: var(--color-danger-fg); }
     .result-name { flex: 1; font-weight: var(--font-weight-semibold); color: var(--text-primary); word-break: break-all; }
     .result-action { color: var(--text-muted); font-size: var(--font-size-xs); }
     .result-error { color: var(--color-danger-fg); font-size: var(--font-size-xs); }
@@ -165,7 +161,7 @@ export class ResultScreenComponent {
   results = input.required<VisibilityResult[]>();
   done    = output<void>();
 
-  readonly succeeded = computed(() => this.results().filter(r => r.success));
-  readonly failed    = computed(() => this.results().filter(r => !r.success));
+  readonly succeeded    = computed(() => this.results().filter(r => r.success));
+  readonly failed       = computed(() => this.results().filter(r => !r.success));
   readonly allSucceeded = computed(() => this.failed().length === 0);
 }

@@ -1,18 +1,17 @@
 import { Component, ChangeDetectionStrategy, input, output } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
 import { SafeGitHubRepo } from '../../../core/models/github-repo.model';
 
 @Component({
   selector: 'app-delete-confirm-screen',
-  imports: [MatButtonModule, MatIconModule],
+  imports: [MatButtonModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="delete-overlay">
       <div class="delete-dialog">
 
         <div class="delete-dialog__header">
-          <mat-icon class="delete-icon">delete_forever</mat-icon>
+          <svg class="delete-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
           <div>
             <h2 class="delete-title">Permanent Deletion</h2>
             <p class="delete-subtitle">This action cannot be undone</p>
@@ -20,7 +19,7 @@ import { SafeGitHubRepo } from '../../../core/models/github-repo.model';
         </div>
 
         <div class="delete-critical-banner">
-          <mat-icon>warning</mat-icon>
+          <svg class="banner-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
           <div class="delete-critical-text">
             <strong>You are about to permanently delete {{ repos().length }} {{ repos().length === 1 ? 'repository' : 'repositories' }}.</strong>
             <p>
@@ -42,7 +41,11 @@ import { SafeGitHubRepo } from '../../../core/models/github-repo.model';
           <ul class="delete-repo-list">
             @for (repo of repos(); track repo.id) {
               <li class="delete-repo-item">
-                <mat-icon class="repo-icon">{{ repo.private ? 'lock' : 'public' }}</mat-icon>
+                @if (repo.private) {
+                  <svg class="repo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                } @else {
+                  <svg class="repo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                }
                 <div class="repo-details">
                   <span class="repo-fullname">{{ repo.fullName }}</span>
                   @if (repo.description) {
@@ -58,7 +61,7 @@ import { SafeGitHubRepo } from '../../../core/models/github-repo.model';
           </ul>
 
           <div class="delete-disclaimer">
-            <mat-icon>info</mat-icon>
+            <svg class="disclaimer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
             <p>
               Requires <code>delete_repo</code> scope (classic PAT) or Administration read/write (fine-grained PAT).
               If your token lacks this scope, all deletions will fail with a permissions error.
@@ -71,7 +74,7 @@ import { SafeGitHubRepo } from '../../../core/models/github-repo.model';
             Cancel — Keep All Repos
           </button>
           <button mat-flat-button color="warn" class="confirm-btn" (click)="confirm.emit()">
-            <mat-icon>delete_forever</mat-icon>
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
             Delete {{ repos().length }} {{ repos().length === 1 ? 'Repository' : 'Repositories' }} Permanently
           </button>
         </div>
@@ -109,7 +112,7 @@ import { SafeGitHubRepo } from '../../../core/models/github-repo.model';
       background: var(--color-danger);
       border-radius: calc(var(--radius-lg) - 2px) calc(var(--radius-lg) - 2px) 0 0;
     }
-    .delete-icon { font-size: 2rem; color: #fff; }
+    .delete-icon { width: 32px; height: 32px; flex-shrink: 0; color: #fff; }
     .delete-title { font-size: var(--font-size-xl); font-weight: var(--font-weight-bold); color: #fff; margin: 0; }
     .delete-subtitle { font-size: var(--font-size-sm); color: rgba(255,255,255,0.8); margin: var(--space-1) 0 0; }
     .delete-critical-banner {
@@ -119,7 +122,7 @@ import { SafeGitHubRepo } from '../../../core/models/github-repo.model';
       background: var(--color-danger-bg);
       border-bottom: 1px solid var(--color-danger);
     }
-    .delete-critical-banner mat-icon { color: var(--color-danger-fg); flex-shrink: 0; font-size: var(--font-size-xl); margin-top: 2px; }
+    .banner-icon { width: 20px; height: 20px; flex-shrink: 0; margin-top: 2px; color: var(--color-danger-fg); }
     .delete-critical-text { display: flex; flex-direction: column; gap: var(--space-2); }
     .delete-critical-text strong { font-size: var(--font-size-base); color: var(--color-danger-fg); }
     .delete-critical-text p { font-size: var(--font-size-sm); color: var(--text-primary); margin: 0; line-height: var(--leading-relaxed); }
@@ -127,7 +130,7 @@ import { SafeGitHubRepo } from '../../../core/models/github-repo.model';
     .delete-description { font-size: var(--font-size-base); color: var(--text-secondary); margin: 0; }
     .delete-repo-list {
       list-style: none;
-      padding: 0;
+      padding: var(--space-2);
       margin: 0;
       display: flex;
       flex-direction: column;
@@ -136,7 +139,6 @@ import { SafeGitHubRepo } from '../../../core/models/github-repo.model';
       overflow-y: auto;
       border: 1px solid var(--color-danger);
       border-radius: var(--radius-md);
-      padding: var(--space-2);
       background: var(--color-danger-bg);
     }
     .delete-repo-item {
@@ -148,7 +150,7 @@ import { SafeGitHubRepo } from '../../../core/models/github-repo.model';
       border-radius: var(--radius-sm);
       border-left: 3px solid var(--color-danger);
     }
-    .repo-icon { font-size: var(--font-size-base); color: var(--text-muted); flex-shrink: 0; }
+    .repo-icon { width: 16px; height: 16px; flex-shrink: 0; color: var(--text-muted); }
     .repo-details { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
     .repo-fullname { font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); color: var(--text-primary); word-break: break-all; }
     .repo-desc { font-size: var(--font-size-xs); color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -163,7 +165,7 @@ import { SafeGitHubRepo } from '../../../core/models/github-repo.model';
       border-radius: var(--radius-md);
       border: 1px solid var(--border-subtle);
     }
-    .delete-disclaimer mat-icon { font-size: var(--font-size-base); color: var(--text-muted); flex-shrink: 0; margin-top: 2px; }
+    .disclaimer-icon { width: 16px; height: 16px; flex-shrink: 0; margin-top: 2px; color: var(--text-muted); }
     .delete-disclaimer p { font-size: var(--font-size-xs); color: var(--text-muted); margin: 0; line-height: var(--leading-relaxed); }
     .delete-disclaimer code { font-family: var(--font-family-mono); font-size: var(--font-size-xs); background: var(--bg-surface); padding: 1px 4px; border-radius: var(--radius-sm); }
     .delete-dialog__actions {
@@ -175,7 +177,8 @@ import { SafeGitHubRepo } from '../../../core/models/github-repo.model';
       flex-wrap: wrap;
     }
     .cancel-btn { flex-shrink: 0; }
-    .confirm-btn { flex-shrink: 0; }
+    .confirm-btn { flex-shrink: 0; display: inline-flex; align-items: center; gap: var(--space-2); }
+    .btn-icon { width: 16px; height: 16px; flex-shrink: 0; }
   `]
 })
 export class DeleteConfirmScreenComponent {
