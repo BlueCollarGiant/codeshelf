@@ -301,13 +301,15 @@
   --nav-item-padding-y: var(--space-2);
 
   /* --- Layout --- */
-  --layout-repos-max-width:  960px;
+  --layout-repos-max-width:  1180px;
   --layout-setup-max-width:  640px;
   --header-height:            56px;
   --status-indicator-size:    10px;
-  --stat-card-min-width:      100px;
-  --controls-search-min-width: 200px;
+  --stat-card-min-width:      128px;
+  --controls-search-min-width: 240px;
   --controls-sort-width:       180px;
+  --repo-score-panel-width:    7rem;
+  --repo-description-max-width: 80ch;
   --code-inline-padding:       2px 6px;
   --status-label-min-width:    120px;
   --card-checkbox-padding-top: 2px;

@@ -2,20 +2,38 @@
 
 A localhost GitHub repository review and management tool for developers.
 
-Inspect all your GitHub repositories, get AI-powered ratings on your public repos, and manage visibility and bulk deletion — running entirely on your machine with your own credentials.
+Inspect your GitHub repositories, review local cleanup and portfolio scores, optionally run AI analysis on public repos only, and manage visibility or deletion with explicit confirmation.
 
-**No accounts. No cloud. No SaaS.**
+**No accounts. No cloud. No SaaS. Your token stays on your machine.**
 
 ---
 
 ## What It Does
 
-- Lists all your GitHub repositories — public and private — in a single dashboard
-- Scores every repo locally: portfolio quality, cleanup candidates, missing descriptions
-- AI analysis (optional) rates your public repos on skill and professionalism and suggests which to hide or clean up
-- You select repos and choose an action: make private, make public, or delete — with a mandatory warning screen before anything executes
-- Dismiss or restore suggestions per repo — stored locally in your browser
-- Your GitHub token stays in `.env` on your machine and is never sent to the browser
+- Lists public and private GitHub repositories in one local dashboard
+- Scores repos locally for portfolio quality, cleanup priority, activity, and completeness
+- Flags missing descriptions, old inactive repos, forks, archived repos, and portfolio candidates
+- Optionally runs AI analysis on public repos only
+- Lets you manually choose repos for visibility changes or deletion
+- Shows a mandatory warning and confirmation screen before any write action executes
+- Stores dismissed suggestions in browser localStorage only
+
+---
+
+## Screenshots
+
+Screenshots and a short demo GIF are planned but not captured yet.
+
+Placeholder capture list:
+
+- Dashboard with public and private repo sections
+- Setup/status screen with token and AI configuration states
+- AI advisory results on public repo cards
+- Visibility warning and confirmation screen
+- Deletion confirmation and result report
+- 20-45 second demo GIF covering dashboard, analysis, and confirmation flow
+
+See [guides/screenshots.md](guides/screenshots.md) for the public media checklist.
 
 ---
 
@@ -31,55 +49,80 @@ npm run install:all
 
 # 3. Set up your environment
 cp .env.example .env
-# Edit .env — add your GITHUB_TOKEN at minimum
+# Edit .env and add your GITHUB_TOKEN at minimum
 
 # 4. Start both servers
 npm run dev
 ```
 
-Open [http://localhost:4200](http://localhost:4200)
+Open [http://localhost:4200](http://localhost:4200).
 
-The setup screen will show your connection status and walk you through any missing configuration.
+The setup screen shows your connection status and walks through missing configuration.
 
 ---
 
 ## GitHub Token Setup
 
 CodeShelf requires a GitHub Personal Access Token in your local `.env` file.
-The token is only used by the local Express server — it never reaches the browser or any external service.
+The token is used only by the local Express server. It never reaches Angular, browser storage, AI providers, or API responses.
 
 **Fine-grained PAT (recommended)**
 
-GitHub → Settings → Developer Settings → Personal access tokens → Fine-grained tokens
+GitHub -> Settings -> Developer Settings -> Personal access tokens -> Fine-grained tokens
 
 | What you need | Permission |
 |---|---|
-| Read repos and metadata | Repository → Metadata → Read-only |
-| Change repo visibility | Repository → Administration → Read/write |
-| Delete repos | Repository → Administration → Read/write |
+| Read repos and metadata | Repository -> Metadata -> Read-only |
+| Change repo visibility | Repository -> Administration -> Read/write |
+| Delete repos | Repository -> Administration -> Read/write |
 
 **Classic PAT (fallback)**
 
-Scopes: `repo` for read and visibility changes, add `delete_repo` for deletion.
-`repo` grants more access than CodeShelf uses — the fine-grained PAT is more precise.
+Use `repo` for repo reads and visibility changes. Add `delete_repo` only if you intend to use deletion.
+
+Classic `repo` grants more access than CodeShelf needs, so the fine-grained token is the safer default.
+
+Do not request `workflow`, `admin:org`, package, gist, notification, or user scopes for CodeShelf.
 
 ---
 
-## AI Analysis (Optional)
+## AI Analysis
 
-CodeShelf supports four AI providers. Set `AI_PROVIDER` in your `.env`:
+AI is optional. Set `AI_PROVIDER` in `.env`:
 
 | Provider | Key needed |
 |---|---|
-| `mock` | None — returns seeded results for testing |
+| `none` | Disables AI entirely |
+| `mock` | No key; returns seeded local test results |
 | `openai` | `OPENAI_API_KEY` |
 | `anthropic` | `ANTHROPIC_API_KEY` |
-| `ollama` | None — uses local Ollama instance |
-| `none` | Disables AI entirely |
+| `ollama` | No cloud key; uses local Ollama |
 
-AI analysis only ever receives your **public** repositories. Private repos are filtered in the backend before any AI call — not just in the UI.
+AI analysis only receives public repository metadata. Private repos are filtered in backend code before any AI provider is called.
 
-AI results are advisory only. You decide every action.
+AI results are advisory only. They never select repos, trigger writes, or call GitHub.
+
+---
+
+## Safety Model
+
+- Express binds to `127.0.0.1` only
+- CORS is restricted to `http://localhost:4200`
+- The GitHub token lives only in `.env` and `process.env.GITHUB_TOKEN`
+- Angular never reads `.env` and never receives the token
+- GitHub responses are sanitized before reaching the frontend
+- Visibility changes and deletion require manual selection plus confirmation
+- CodeShelf is designed for localhost use only; do not deploy it publicly
+
+See [guides/security.md](guides/security.md) for the public security notes.
+
+---
+
+## Demo Walkthrough
+
+No runtime demo mode is built into the app. A future screenshot/GIF walkthrough will show the normal local workflow without adding fake user-facing data paths.
+
+See [guides/demo.md](guides/demo.md) for the planned public walkthrough.
 
 ---
 
@@ -87,11 +130,11 @@ AI results are advisory only. You decide every action.
 
 | Command | What it does |
 |---|---|
-| `npm run install:all` | Install all dependencies (root, frontend, backend) |
-| `npm run dev` | Start Angular dev server (port 4200) and Express backend (port 3000) |
-| `npm run dev:frontend` | Angular dev server only |
-| `npm run dev:backend` | Express backend only |
-| `npm run build` | Build Angular for production |
+| `npm run install:all` | Install root, frontend, and backend dependencies |
+| `npm run dev` | Start Angular on port 4200 and Express on port 3000 |
+| `npm run dev:frontend` | Start Angular only |
+| `npm run dev:backend` | Start Express only |
+| `npm run build` | Build frontend and backend |
 
 ---
 
@@ -99,22 +142,20 @@ AI results are advisory only. You decide every action.
 
 | Layer | Choice |
 |---|---|
-| Frontend | Angular 22 — standalone components, signals, OnPush |
-| Backend | Node.js + Express — localhost only, not a production server |
-| Auth | GitHub PAT in `.env` — never in Angular or browser storage |
-| AI | Adapter pattern — swap providers via `AI_PROVIDER` env var |
-| Storage | localStorage for dismiss/ignore state only — no database |
+| Frontend | Angular 22 standalone components, signals, OnPush |
+| Backend | Node.js + Express, localhost only |
+| Auth | GitHub PAT in `.env`, backend-only |
+| AI | Adapter pattern selected by `AI_PROVIDER` |
+| Storage | localStorage for dismissed suggestions only |
+| Database | None |
 
 ---
 
-## Security
+## Roadmap
 
-- Express binds to `127.0.0.1` only — not reachable from other machines on your network
-- CORS is locked to `http://localhost:4200`
-- Your GitHub token lives in `.env` and `process.env` only — never in Angular, never in API responses, never logged
-- AI providers never receive private repos — filtered in backend code, not just the UI
-- GitHub API responses are sanitized before reaching the frontend — raw objects are never forwarded
-- Do not deploy CodeShelf publicly — it is designed for localhost use only
+- Add screenshots and a short demo GIF/video
+- Later: export reports, privacy masking, rate limit display
+- Not planned: OAuth, SaaS hosting, database, PR automation, GitHub Actions automation
 
 ---
 
@@ -126,4 +167,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE).

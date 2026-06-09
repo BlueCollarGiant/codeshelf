@@ -27,6 +27,11 @@
   color: var(--badge-private-fg);
 }
 
+.badge--internal {
+  background: var(--badge-private-bg);
+  color: var(--badge-private-fg);
+}
+
 .badge--archived {
   background: var(--badge-archived-bg);
   color: var(--badge-archived-fg);
@@ -60,6 +65,49 @@
   font-size: var(--chip-font-size);
   font-weight: var(--chip-font-weight);
   color: var(--text-secondary);
+}
+
+.chip--ai {
+  background: var(--color-info-bg);
+  color: var(--color-info-fg);
+}
+
+.chip--danger {
+  background: var(--color-danger-bg);
+  color: var(--color-danger-fg);
+}
+
+.chip--warn {
+  background: var(--color-warning-bg);
+  color: var(--color-warning-fg);
+}
+
+.score-tile {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-3);
+  background: var(--bg-inset);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.score-tile--portfolio {
+  border-color: color-mix(in srgb, var(--color-portfolio) 45%, var(--border-subtle));
+  background: color-mix(in srgb, var(--color-portfolio-bg) 45%, var(--bg-inset));
+}
+
+.score-tile__label {
+  color: var(--text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+}
+
+.score-tile__value {
+  color: var(--text-primary);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  line-height: 1;
 }
 
 /* Screen reader only */

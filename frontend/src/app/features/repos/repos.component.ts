@@ -3,7 +3,6 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { MatIconModule } from '@angular/material/icon';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { SafeGitHubRepo } from '../../core/models/github-repo.model';
 import { RepoScore } from '../../core/models/repo-score.model';
@@ -39,7 +38,6 @@ type DeleteState = 'idle' | 'confirming' | 'executing' | 'results';
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
-    MatIconModule,
     MatSlideToggleModule,
     RepoCardComponent,
     StatCardComponent,
@@ -54,6 +52,15 @@ type DeleteState = 'idle' | 'confirming' | 'executing' | 'results';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="repos-page">
+      <section class="repos-page__header">
+        <div>
+          <p class="repos-page__eyebrow">Repository review</p>
+          <h1 class="repos-page__title">CodeShelf dashboard</h1>
+          <p class="repos-page__intro">
+            Scan portfolio quality, cleanup priority, and visibility risk from one local view.
+          </p>
+        </div>
+      </section>
 
       <section class="repos-page__stats">
         <app-stat-card [value]="stats().total"               label="Total" />
@@ -68,7 +75,7 @@ type DeleteState = 'idle' | 'confirming' | 'executing' | 'results';
       <section class="repos-page__controls">
         <mat-form-field appearance="outline" subscriptSizing="dynamic" class="controls__search">
           <mat-label>Search repos</mat-label>
-          <input matInput [value]="searchQuery()" (input)="onSearchInput($event)" placeholder="Filter by name…" />
+          <input matInput [value]="searchQuery()" (input)="onSearchInput($event)" placeholder="Filter by name..." />
         </mat-form-field>
 
         <mat-form-field appearance="outline" subscriptSizing="dynamic" class="controls__sort">
@@ -77,7 +84,7 @@ type DeleteState = 'idle' | 'confirming' | 'executing' | 'results';
             <mat-option value="updated">Recently updated</mat-option>
             <mat-option value="stars">Most stars</mat-option>
             <mat-option value="forks">Most forks</mat-option>
-            <mat-option value="name">Name A–Z</mat-option>
+            <mat-option value="name">Name A-Z</mat-option>
             <mat-option value="portfolio">Portfolio score</mat-option>
             <mat-option value="cleanup">Cleanup score</mat-option>
           </mat-select>
@@ -98,13 +105,13 @@ type DeleteState = 'idle' | 'confirming' | 'executing' | 'results';
 
         <button mat-stroked-button (click)="selectAll()">Select all</button>
         <button mat-stroked-button (click)="deselectAll()">Deselect all</button>
-        <button mat-stroked-button (click)="refresh()" [disabled]="loadState() === 'loading'">
-          <mat-icon>refresh</mat-icon>
+        <button mat-stroked-button class="controls__refresh" (click)="refresh()" [disabled]="loadState() === 'loading'">
+          Refresh
         </button>
         <button mat-flat-button color="primary" class="controls__analyse"
           [disabled]="aiState() === 'loading' || loadState() !== 'loaded'"
           (click)="analysePublicRepos()">
-          @if (aiState() === 'loading') { Analysing… } @else { Analyse Public Repos }
+          @if (aiState() === 'loading') { Analysing... } @else { Analyse Public Repos }
         </button>
 
         <div class="delete-toggle" [class.delete-toggle--active]="deleteToggleEnabled()">
@@ -122,7 +129,7 @@ type DeleteState = 'idle' | 'confirming' | 'executing' | 'results';
 
       @if (aiState() === 'done') {
         <p class="ai-advisory">
-          AI analysis is advisory only. Ratings and suggestions are guides — you make all final decisions.
+          AI analysis is advisory only. Ratings and suggestions are guides; you make all final decisions.
         </p>
       }
       @if (aiState() === 'error') {
@@ -135,11 +142,11 @@ type DeleteState = 'idle' | 'confirming' | 'executing' | 'results';
           <div class="action-bar__buttons">
             <button mat-stroked-button (click)="initiateAction('private')"
               [disabled]="actionState() === 'executing'">
-              <mat-icon>lock</mat-icon> Make Private
+              Make Private
             </button>
             <button mat-flat-button color="warn" (click)="initiateAction('public')"
               [disabled]="actionState() === 'executing'">
-              <mat-icon>public</mat-icon> Make Public
+              Make Public
             </button>
           </div>
         </div>
@@ -147,12 +154,11 @@ type DeleteState = 'idle' | 'confirming' | 'executing' | 'results';
 
       @if (deleteToggleEnabled() && deleteSelectedIds().size > 0) {
         <div class="action-bar action-bar--delete">
-          <mat-icon class="delete-bar-icon">warning</mat-icon>
+          <span class="delete-bar-icon" aria-hidden="true">!</span>
           <span class="action-bar__label">{{ deleteSelectedIds().size }} repo{{ deleteSelectedIds().size === 1 ? '' : 's' }} marked for deletion</span>
           <button mat-flat-button color="warn" class="delete-btn"
             [disabled]="deleteState() === 'executing'"
             (click)="initiateDelete()">
-            <mat-icon>delete_forever</mat-icon>
             Delete {{ deleteSelectedIds().size }} {{ deleteSelectedIds().size === 1 ? 'Repo' : 'Repos' }}
           </button>
         </div>
@@ -267,13 +273,58 @@ type DeleteState = 'idle' | 'confirming' | 'executing' | 'results';
       display: flex;
       flex-direction: column;
       gap: var(--space-6);
+      width: 100%;
     }
-    .repos-page__stats { display: flex; gap: var(--space-3); flex-wrap: wrap; }
-    .repos-page__controls { display: flex; gap: var(--space-3); align-items: center; flex-wrap: wrap; }
-    .controls__search { flex: 1; min-width: var(--controls-search-min-width); }
-    .controls__sort   { width: var(--controls-sort-width); }
-    .controls__filter { width: var(--controls-sort-width); }
-    .controls__analyse { margin-left: auto; white-space: nowrap; }
+    .repos-page__header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: var(--space-6);
+    }
+    .repos-page__eyebrow {
+      color: var(--color-primary);
+      font-size: var(--font-size-xs);
+      font-weight: var(--font-weight-semibold);
+      letter-spacing: var(--tracking-wide);
+      text-transform: uppercase;
+    }
+    .repos-page__title {
+      margin-top: var(--space-1);
+      color: var(--text-primary);
+      font-size: var(--font-size-2xl);
+      font-weight: var(--font-weight-bold);
+      line-height: var(--leading-tight);
+    }
+    .repos-page__intro {
+      margin-top: var(--space-2);
+      color: var(--text-secondary);
+      font-size: var(--font-size-base);
+      max-width: var(--layout-setup-max-width);
+    }
+    .repos-page__stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(var(--stat-card-min-width), 1fr));
+      gap: var(--space-3);
+    }
+    .repos-page__controls {
+      display: grid;
+      grid-template-columns: minmax(var(--controls-search-min-width), 1fr) var(--controls-sort-width) var(--controls-sort-width) auto auto auto auto;
+      gap: var(--space-3);
+      align-items: center;
+      padding: var(--space-3);
+      background: var(--bg-sidebar);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+    }
+    .controls__search,
+    .controls__sort,
+    .controls__filter {
+      width: 100%;
+    }
+    .controls__analyse,
+    .controls__refresh {
+      white-space: nowrap;
+    }
     .delete-toggle {
       display: flex;
       align-items: center;
@@ -281,6 +332,7 @@ type DeleteState = 'idle' | 'confirming' | 'executing' | 'results';
       padding: var(--space-2) var(--space-3);
       border-radius: var(--radius-md);
       border: 1px solid var(--border-subtle);
+      min-height: var(--space-10);
     }
     .delete-toggle--active {
       border-color: var(--color-danger);
@@ -305,7 +357,17 @@ type DeleteState = 'idle' | 'confirming' | 'executing' | 'results';
       border-color: var(--color-danger);
       background: var(--color-danger-bg);
     }
-    .delete-bar-icon { color: var(--color-danger-fg); }
+    .delete-bar-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: var(--space-6);
+      height: var(--space-6);
+      border-radius: var(--radius-full);
+      color: var(--color-danger-fg);
+      border: 1px solid var(--color-danger);
+      font-weight: var(--font-weight-bold);
+    }
     .action-bar__label { font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); color: var(--text-primary); flex: 1; }
     .action-bar__buttons { display: flex; gap: var(--space-3); }
     .delete-btn { margin-left: auto; }
@@ -317,9 +379,22 @@ type DeleteState = 'idle' | 'confirming' | 'executing' | 'results';
       display: flex;
       align-items: center;
       gap: var(--space-2);
+      padding-top: var(--space-2);
     }
-    .repos-page__count { font-size: var(--font-size-sm); color: var(--text-muted); font-weight: var(--font-weight-normal); }
-    .repos-page__list { display: flex; flex-direction: column; gap: var(--space-3); }
+    .repos-page__count {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: var(--space-6);
+      height: var(--space-6);
+      padding: 0 var(--space-2);
+      border-radius: var(--radius-full);
+      background: var(--bg-elevated);
+      font-size: var(--font-size-sm);
+      color: var(--text-secondary);
+      font-weight: var(--font-weight-semibold);
+    }
+    .repos-page__list { display: flex; flex-direction: column; gap: var(--space-2); }
     .ai-advisory {
       font-size: var(--font-size-sm);
       color: var(--text-muted);
@@ -330,6 +405,36 @@ type DeleteState = 'idle' | 'confirming' | 'executing' | 'results';
       background: var(--bg-elevated);
     }
     .ai-advisory--error { color: var(--color-danger-fg); border-color: var(--color-danger); background: var(--color-danger-bg); }
+    @media (max-width: 1080px) {
+      .repos-page__controls {
+        grid-template-columns: minmax(var(--controls-search-min-width), 1fr) var(--controls-sort-width) var(--controls-sort-width);
+      }
+      .controls__analyse {
+        grid-column: span 2;
+      }
+      .delete-toggle {
+        grid-column: 1 / -1;
+      }
+    }
+    @media (max-width: 760px) {
+      .repos-page {
+        padding: var(--space-4);
+      }
+      .repos-page__controls {
+        grid-template-columns: 1fr;
+      }
+      .controls__analyse {
+        grid-column: auto;
+      }
+      .action-bar__buttons {
+        width: 100%;
+        flex-wrap: wrap;
+      }
+      .delete-btn {
+        margin-left: 0;
+        width: 100%;
+      }
+    }
   `]
 })
 export class ReposComponent implements OnInit {
