@@ -3,6 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import { errorHandler } from './middleware/errorHandler.js';
 import healthRoutes from './routes/health.routes.js';
+import githubRoutes from './routes/github.routes.js';
 
 const app = express();
 
@@ -12,6 +13,7 @@ app.use(cors({ origin: ALLOWED_ORIGIN }));
 app.use(express.json());
 
 app.use('/api', healthRoutes);
+app.use('/api/github', githubRoutes);
 
 app.use(errorHandler);
 
