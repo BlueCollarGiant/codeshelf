@@ -49,7 +49,10 @@ import { SafeGitHubRepo } from '../../../core/models/github-repo.model';
                     <span class="repo-desc">{{ repo.description }}</span>
                   }
                 </div>
-                <span class="repo-stats">⭐ {{ repo.stargazersCount }}</span>
+                <span class="repo-stats">
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="star-icon" aria-hidden="true"><polygon points="8 2 10.09 6.26 14.73 6.9 11.36 10.14 12.18 14.76 8 12.55 3.82 14.76 4.64 10.14 1.27 6.9 5.91 6.26 8 2"/></svg>
+                  {{ repo.stargazersCount }}
+                </span>
               </li>
             }
           </ul>
@@ -149,7 +152,8 @@ import { SafeGitHubRepo } from '../../../core/models/github-repo.model';
     .repo-details { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
     .repo-fullname { font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); color: var(--text-primary); word-break: break-all; }
     .repo-desc { font-size: var(--font-size-xs); color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .repo-stats { font-size: var(--font-size-xs); color: var(--text-muted); flex-shrink: 0; }
+    .repo-stats { display: inline-flex; align-items: center; gap: var(--space-1); font-size: var(--font-size-xs); color: var(--text-muted); flex-shrink: 0; }
+    .star-icon { width: 12px; height: 12px; flex-shrink: 0; }
     .delete-disclaimer {
       display: flex;
       gap: var(--space-3);

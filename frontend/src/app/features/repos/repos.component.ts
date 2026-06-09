@@ -3,7 +3,6 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { SafeGitHubRepo } from '../../core/models/github-repo.model';
 import { RepoScore } from '../../core/models/repo-score.model';
 import { DashboardStats } from '../../core/models/dashboard-stats.model';
@@ -38,7 +37,6 @@ type DeleteState = 'idle' | 'confirming' | 'executing' | 'results';
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
-    MatSlideToggleModule,
     RepoCardComponent,
     StatCardComponent,
     LoadingStateComponent,
@@ -114,17 +112,23 @@ type DeleteState = 'idle' | 'confirming' | 'executing' | 'results';
           @if (aiState() === 'loading') { Analysing... } @else { Analyse Public Repos }
         </button>
 
-        <div class="delete-toggle" [class.delete-toggle--active]="deleteToggleEnabled()">
-          <mat-slide-toggle
+        <label class="delete-toggle" [class.delete-toggle--active]="deleteToggleEnabled()">
+          <input
+            type="checkbox"
+            class="delete-toggle__input"
             [checked]="deleteToggleEnabled()"
-            (change)="onDeleteToggleChange($event.checked)"
-            color="warn">
-            Enable deletion
-          </mat-slide-toggle>
+            (change)="onDeleteToggleInput($event)"
+          />
+          <span class="delete-toggle__switch" aria-hidden="true">
+            <span class="delete-toggle__thumb"></span>
+          </span>
+          <span class="delete-toggle__label">
+            {{ deleteToggleEnabled() ? 'Deletion enabled' : 'Enable deletion' }}
+          </span>
           @if (deleteToggleEnabled()) {
             <span class="delete-toggle__warning">Deletion is permanent</span>
           }
-        </div>
+        </label>
       </section>
 
       @if (aiState() === 'done') {
@@ -581,13 +585,25 @@ export class ReposComponent implements OnInit {
   }
 
   async analysePublicRepos(): Promise<void> {
-    const publicRepos = this.repos().filter(r => r.private === false);
-    if (publicRepos.length === 0) return;
+    const selected = this.selectedIds();
+    const allPublic = this.repos().filter(r => r.private === false);
+    // If repos are selected, scope to those public ones only; otherwise analyse all public
+    const toAnalyse = selected.size > 0
+      ? allPublic.filter(r => selected.has(r.id))
+      : allPublic;
+    if (toAnalyse.length === 0) return;
     this.aiState.set('loading');
     try {
-      const { results } = await this.aiApi.analyzeRepos(publicRepos);
+      const { results } = await this.aiApi.analyzeRepos(toAnalyse);
+      const scores = this.scoreMap();
       const map: Record<number, RepoAiResult> = {};
-      for (const r of results) map[r.repoId] = r;
+      for (const r of results) {
+        // Suppress delete suggestion for protected repo types (profile, config)
+        const classification = scores[r.repoId]?.classification;
+        map[r.repoId] = classification?.protected
+          ? { ...r, suggestDeletion: false }
+          : r;
+      }
       this.aiResults.set(map);
       this.aiState.set('done');
     } catch {
