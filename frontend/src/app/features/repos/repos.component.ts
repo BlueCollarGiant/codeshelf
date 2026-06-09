@@ -307,7 +307,7 @@ export class ReposComponent implements OnInit {
   }
 
   async analysePublicRepos(): Promise<void> {
-    const publicRepos = this.repos().filter(r => !r.private);
+    const publicRepos = this.repos().filter(r => r.private === false);
     if (publicRepos.length === 0) return;
     this.aiState.set('loading');
     try {
