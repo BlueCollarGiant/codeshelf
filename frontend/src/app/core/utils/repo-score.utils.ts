@@ -49,7 +49,7 @@ function cleanupScore(repo: SafeGitHubRepo): number {
   if (repo.fork) score += 20;
   if (repo.archived) score += 20;
   if (!repo.language) score += 10;
-  return Math.min(100, score);
+  return Math.max(0, Math.min(100, score));
 }
 
 function buildSuggestions(repo: SafeGitHubRepo): RepoSuggestion[] {
