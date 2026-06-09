@@ -1,0 +1,433 @@
+/* =============================================================
+   CodeShelf — Design Tokens
+   Phase 1.5 — locked before any UI is built
+   Dark mode is the default. All components use var() only.
+   ============================================================= */
+
+
+/* =============================================================
+   LAYER 1 — PRIMITIVES
+   Raw values. Do not use these directly in components.
+   ============================================================= */
+
+:root {
+
+  /* --- Neutral scale (dark-first) --- */
+  --color-neutral-0:    #FFFFFF;
+  --color-neutral-50:   #F8F9FA;
+  --color-neutral-100:  #ECEEF1;
+  --color-neutral-200:  #D4D8DE;
+  --color-neutral-300:  #9EA6B3;
+  --color-neutral-400:  #8A9BB0;   /* raised from #6B7685 — ensures --text-muted hits 4.5:1 on --bg-surface */
+  --color-neutral-500:  #4A5260;
+  --color-neutral-600:  #333B49;
+  --color-neutral-700:  #232A35;
+  --color-neutral-750:  #1C2330;   /* card surface */
+  --color-neutral-800:  #161D28;   /* sidebar / panel */
+  --color-neutral-850:  #111720;   /* app background */
+  --color-neutral-900:  #0C1017;   /* deepest background */
+  --color-neutral-950:  #070B10;
+
+  /* --- Accent — electric blue (action only, used sparingly) --- */
+  --color-blue-300: #7EC8F7;
+  --color-blue-400: #4AACF5;
+  --color-blue-500: #2196F3;   /* primary action */
+  --color-blue-600: #1976D2;
+  --color-blue-700: #1254A4;
+  --color-blue-900: #0A2E5C;
+
+  /* --- Status colors --- */
+  --color-green-400:  #4CAF82;
+  --color-green-500:  #2E9E5B;
+  --color-green-600:  #1F7A43;
+
+  --color-yellow-400: #F5C842;
+  --color-yellow-500: #E6A817;
+  --color-yellow-600: #C07E0A;
+
+  --color-red-400:    #F07070;
+  --color-red-500:    #E53935;
+  --color-red-600:    #B71C1C;
+
+  --color-purple-400: #B39DDB;
+  --color-purple-500: #7E57C2;
+
+  /* --- Spacing (4px base unit) --- */
+  --space-px:  1px;
+  --space-1:   0.25rem;    /*  4px */
+  --space-2:   0.5rem;     /*  8px */
+  --space-3:   0.75rem;    /* 12px */
+  --space-4:   1rem;       /* 16px */
+  --space-5:   1.25rem;    /* 20px */
+  --space-6:   1.5rem;     /* 24px */
+  --space-8:   2rem;       /* 32px */
+  --space-10:  2.5rem;     /* 40px */
+  --space-12:  3rem;       /* 48px */
+  --space-16:  4rem;       /* 64px */
+  --space-20:  5rem;       /* 80px */
+
+  /* --- Typography scale --- */
+  --font-size-xs:   0.6875rem;  /* 11px — badge labels */
+  --font-size-sm:   0.75rem;    /* 12px — captions, meta */
+  --font-size-base: 0.875rem;   /* 14px — body (dense UI) */
+  --font-size-md:   1rem;       /* 16px — emphasized body */
+  --font-size-lg:   1.125rem;   /* 18px — card title */
+  --font-size-xl:   1.25rem;    /* 20px — section heading */
+  --font-size-2xl:  1.5rem;     /* 24px — page heading */
+  --font-size-3xl:  1.875rem;   /* 30px — dashboard hero */
+
+  /* --- Font weights --- */
+  --font-weight-normal:   400;
+  --font-weight-medium:   500;
+  --font-weight-semibold: 600;
+  --font-weight-bold:     700;
+
+  /* --- Line heights --- */
+  --leading-tight:  1.25;
+  --leading-snug:   1.375;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.625;
+
+  /* --- Letter spacing --- */
+  --tracking-tight:  -0.02em;
+  --tracking-normal: 0;
+  --tracking-wide:   0.04em;
+  --tracking-wider:  0.08em;
+
+  /* --- Border radius --- */
+  --radius-sm:   0.25rem;   /*  4px — badges, chips */
+  --radius-md:   0.375rem;  /*  6px — inputs */
+  --radius-lg:   0.5rem;    /*  8px — cards */
+  --radius-xl:   0.75rem;   /* 12px — panels */
+  --radius-full: 9999px;    /* pills */
+
+  /* --- Shadows (dark mode — lighter than standard) --- */
+  --shadow-sm:  0 1px 2px rgb(0 0 0 / 0.3);
+  --shadow-md:  0 2px 6px rgb(0 0 0 / 0.4);
+  --shadow-lg:  0 6px 16px rgb(0 0 0 / 0.5);
+
+  /* --- Motion --- */
+  --duration-fast:   120ms;
+  --duration-normal: 180ms;
+  --duration-slow:   280ms;
+  --ease-default:    cubic-bezier(0.2, 0, 0, 1);
+
+  /* --- Z-index scale --- */
+  --z-base:     0;
+  --z-raised:   10;
+  --z-dropdown: 200;
+  --z-sticky:   300;
+  --z-modal:    1050;  /* must exceed Angular Material's internal overlay range (1000+) */
+  --z-toast:    1100;
+  --z-tooltip:  1200;
+}
+
+
+/* =============================================================
+   LAYER 2 — SEMANTIC (dark mode default)
+   Maps purpose to primitives. Override here for light mode.
+   ============================================================= */
+
+:root {
+
+  /* --- Backgrounds --- */
+  --bg-app:       var(--color-neutral-850);  /* outermost shell */
+  --bg-sidebar:   var(--color-neutral-800);  /* left nav / panel */
+  --bg-surface:   var(--color-neutral-750);  /* cards, dialogs */
+  --bg-elevated:  var(--color-neutral-700);  /* hover states, popovers */
+  --bg-inset:     var(--color-neutral-900);  /* code blocks, deep wells */
+
+  /* --- Foreground / text --- */
+  --text-primary:   var(--color-neutral-50);   /* headings, labels */
+  --text-secondary: var(--color-neutral-300);  /* body, descriptions */
+  --text-muted:     var(--color-neutral-400);  /* captions, placeholders */
+  --text-disabled:  var(--color-neutral-500);
+
+  /* --- Borders --- */
+  --border-subtle:  var(--color-neutral-700);  /* card edges, dividers */
+  --border-default: var(--color-neutral-600);  /* inputs, tables */
+  --border-strong:  var(--color-neutral-500);  /* focus, emphasis */
+
+  /* --- Primary action (electric blue) --- */
+  --color-primary:         var(--color-blue-500);
+  --color-primary-hover:   var(--color-blue-400);
+  --color-primary-active:  var(--color-blue-300);
+  --color-primary-muted:   var(--color-blue-900);   /* tinted badge bg */
+  --color-primary-fg:      var(--color-neutral-0);
+
+  /* --- Status --- */
+  --color-success:     var(--color-green-500);
+  --color-success-bg:  color-mix(in srgb, var(--color-green-600) 20%, transparent);
+  --color-success-fg:  var(--color-green-400);
+
+  --color-warning:     var(--color-yellow-500);
+  --color-warning-bg:  color-mix(in srgb, var(--color-yellow-600) 20%, transparent);
+  --color-warning-fg:  var(--color-yellow-400);
+
+  --color-danger:      var(--color-red-500);
+  --color-danger-bg:   color-mix(in srgb, var(--color-red-600) 25%, transparent);
+  --color-danger-fg:   var(--color-red-400);
+
+  --color-info:        var(--color-blue-500);
+  --color-info-bg:     var(--color-primary-muted);
+  --color-info-fg:     var(--color-blue-300);
+
+  /* --- Portfolio / special --- */
+  --color-portfolio:    var(--color-purple-500);
+  --color-portfolio-bg: color-mix(in srgb, var(--color-purple-500) 18%, transparent);
+  --color-portfolio-fg: var(--color-purple-400);
+
+  /* --- Focus ring --- */
+  --ring-color:  var(--color-primary);
+  --ring-width:  2px;
+  --ring-offset: 2px;
+  --ring-offset-color: var(--bg-surface);
+
+  /* --- Semantic spacing --- */
+  --spacing-card:       var(--space-4);    /* card internal padding */
+  --spacing-card-gap:   var(--space-3);    /* gap between card sections */
+  --spacing-section:    var(--space-8);    /* between page sections */
+  --spacing-page-x:     var(--space-6);    /* page horizontal padding */
+  --spacing-page-y:     var(--space-6);    /* page vertical padding */
+
+  /* --- Semantic typography --- */
+  --font-family-base:    'Inter', 'Segoe UI', system-ui, sans-serif;
+  --font-family-mono:    'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+
+  --text-size-body:     var(--font-size-base);
+  --text-size-label:    var(--font-size-sm);
+  --text-size-caption:  var(--font-size-xs);
+  --text-size-heading:  var(--font-size-lg);
+  --text-size-title:    var(--font-size-xl);
+  --text-size-display:  var(--font-size-2xl);
+}
+
+
+/* =============================================================
+   LAYER 3 — COMPONENT TOKENS
+   Per-component values referencing semantic layer only.
+   ============================================================= */
+
+:root {
+
+  /* --- Repo card --- */
+  --card-bg:            var(--bg-surface);
+  --card-bg-hover:      var(--bg-elevated);
+  --card-border:        var(--border-subtle);
+  --card-border-hover:  var(--border-default);
+  --card-radius:        var(--radius-lg);
+  --card-padding:       var(--spacing-card);
+  --card-shadow:        var(--shadow-sm);
+  --card-shadow-hover:  var(--shadow-md);
+
+  /* --- Checkbox (on repo cards) --- */
+  --checkbox-border:    var(--border-default);
+  --checkbox-checked-bg: var(--color-primary);
+  --checkbox-radius:    var(--radius-sm);
+
+  /* --- Suggestion badge --- */
+  --badge-radius:       var(--radius-sm);
+  --badge-font-size:    var(--font-size-xs);
+  --badge-font-weight:  var(--font-weight-semibold);
+  --badge-padding-x:    var(--space-2);
+  --badge-padding-y:    2px;
+  --badge-tracking:     var(--tracking-wide);
+
+  /* --- Stat chip (score display) --- */
+  --chip-bg:            var(--bg-elevated);
+  --chip-border:        var(--border-subtle);
+  --chip-radius:        var(--radius-full);
+  --chip-font-size:     var(--font-size-xs);
+  --chip-font-weight:   var(--font-weight-semibold);
+  --chip-padding-x:     var(--space-3);
+  --chip-padding-y:     var(--space-1);
+
+  /* --- Buttons --- */
+  --btn-radius:         var(--radius-md);
+  --btn-font-weight:    var(--font-weight-semibold);
+  --btn-font-size:      var(--font-size-base);
+  --btn-padding-x:      var(--space-5);
+  --btn-padding-y:      var(--space-2);
+  --btn-transition:     background-color var(--duration-fast) var(--ease-default),
+                        border-color var(--duration-fast) var(--ease-default),
+                        color var(--duration-fast) var(--ease-default);
+
+  /* Primary button */
+  --btn-primary-bg:       var(--color-primary);
+  --btn-primary-bg-hover: var(--color-primary-hover);
+  --btn-primary-fg:       var(--color-primary-fg);
+
+  /* Secondary button */
+  --btn-secondary-bg:       transparent;
+  --btn-secondary-bg-hover: var(--bg-elevated);
+  --btn-secondary-border:   var(--border-default);
+  --btn-secondary-fg:       var(--text-primary);
+
+  /* Danger button */
+  --btn-danger-bg:       var(--color-danger-bg);
+  --btn-danger-bg-hover: color-mix(in srgb, var(--color-red-600) 35%, transparent);
+  --btn-danger-border:   var(--color-danger);
+  --btn-danger-fg:       var(--color-danger-fg);
+
+  /* --- Input / filter bar --- */
+  --input-bg:           var(--bg-inset);
+  --input-border:       var(--border-default);
+  --input-border-focus: var(--color-primary);
+  --input-fg:           var(--text-primary);
+  --input-placeholder:  var(--text-muted);
+  --input-radius:       var(--radius-md);
+  --input-padding-x:    var(--space-3);
+  --input-padding-y:    var(--space-2);
+  --input-font-size:    var(--font-size-base);
+
+  /* --- Dashboard stat cards --- */
+  --stat-card-bg:       var(--bg-surface);
+  --stat-card-border:   var(--border-subtle);
+  --stat-card-radius:   var(--radius-lg);
+  --stat-card-padding:  var(--space-5);
+  --stat-number-size:   var(--font-size-2xl);
+  --stat-number-weight: var(--font-weight-bold);
+  --stat-label-size:    var(--font-size-sm);
+  --stat-label-color:   var(--text-muted);
+
+  /* --- Sidebar / nav --- */
+  --nav-bg:             var(--bg-sidebar);
+  --nav-border:         var(--border-subtle);
+  --nav-item-fg:        var(--text-secondary);
+  --nav-item-fg-active: var(--text-primary);
+  --nav-item-bg-active: var(--bg-elevated);
+  --nav-item-radius:    var(--radius-md);
+  --nav-item-padding-x: var(--space-3);
+  --nav-item-padding-y: var(--space-2);
+
+  /* --- Action controls bar (Make Private / Make Public / Delete toggle) --- */
+  --action-bar-bg:      var(--bg-sidebar);
+  --action-bar-border:  var(--border-subtle);
+  --action-bar-padding: var(--space-3) var(--space-4);
+
+  /* Delete safety toggle — visually distinct from action buttons */
+  /* Active state uses BOTH color shift AND icon/label change — color alone is not enough */
+  --delete-toggle-bg:          var(--bg-inset);
+  --delete-toggle-bg-active:   var(--color-danger-bg);
+  --delete-toggle-border:      var(--border-default);
+  --delete-toggle-border-active: var(--color-danger);
+  --delete-toggle-fg:          var(--text-muted);
+  --delete-toggle-fg-active:   var(--color-danger-fg);
+  /* Icon: shield-check (off) → warning-triangle (on). Label: "Enable deletion" → "Deletion enabled" */
+
+  /* --- Warning / confirmation screen --- */
+  --warning-bg:         var(--bg-surface);
+  --warning-border:     var(--color-warning);
+  --warning-radius:     var(--radius-xl);
+
+  --danger-warning-bg:  var(--color-danger-bg);
+  --danger-warning-border: var(--color-danger);
+
+  /* --- Code / monospace blocks --- */
+  --code-bg:      var(--bg-inset);
+  --code-fg:      var(--color-blue-300);
+  --code-radius:  var(--radius-sm);
+  --code-font:    var(--font-family-mono);
+  --code-size:    var(--font-size-sm);
+
+  /* --- Scrollbar --- */
+  --scrollbar-track:  var(--bg-app);
+  --scrollbar-thumb:  var(--color-neutral-600);
+  --scrollbar-width:  6px;
+
+  /* --- Visibility badge colors --- */
+  --badge-public-bg:   var(--color-success-bg);
+  --badge-public-fg:   var(--color-success-fg);
+  --badge-private-bg:  var(--color-info-bg);
+  --badge-private-fg:  var(--color-info-fg);
+  --badge-archived-bg: var(--bg-elevated);
+  --badge-archived-fg: var(--text-muted);
+
+  /* --- AI advisory label --- */
+  --ai-label-bg:       var(--color-portfolio-bg);
+  --ai-label-fg:       var(--color-portfolio-fg);
+  --ai-label-font:     var(--font-size-xs);
+}
+
+
+/* =============================================================
+   LIGHT MODE OVERRIDE
+   Applied via [data-theme="light"] on <html>.
+   Not the default — dark is default.
+   ============================================================= */
+
+[data-theme="light"] {
+  --bg-app:       var(--color-neutral-50);
+  --bg-sidebar:   var(--color-neutral-100);
+  --bg-surface:   var(--color-neutral-0);
+  --bg-elevated:  var(--color-neutral-100);
+  --bg-inset:     var(--color-neutral-100);
+
+  --text-primary:   var(--color-neutral-900);
+  --text-secondary: var(--color-neutral-600);
+  --text-muted:     var(--color-neutral-400);
+  --text-disabled:  var(--color-neutral-300);
+
+  --border-subtle:  var(--color-neutral-200);
+  --border-default: var(--color-neutral-300);
+  --border-strong:  var(--color-neutral-400);
+
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.06);
+  --shadow-md: 0 2px 6px rgb(0 0 0 / 0.08);
+  --shadow-lg: 0 6px 16px rgb(0 0 0 / 0.10);
+
+  --ring-offset-color: var(--bg-surface);
+}
+
+
+/* =============================================================
+   ANGULAR MATERIAL BRIDGE
+   Maps Material M3 system role CSS vars to CodeShelf semantic tokens.
+   These must be set BEFORE any Angular Material component renders.
+   Apply in styles.scss after importing tokens.css.
+
+   Without this, Angular Material renders its default light-gray
+   surfaces and you will spend Phase 2 fighting the theme.
+   ============================================================= */
+
+:root {
+
+  /* --- M3 system roles — color --- */
+  --mat-sys-primary:                var(--color-primary);
+  --mat-sys-on-primary:             var(--color-primary-fg);
+  --mat-sys-primary-container:      var(--color-primary-muted);
+  --mat-sys-on-primary-container:   var(--color-blue-300);
+
+  --mat-sys-secondary:              var(--color-neutral-400);
+  --mat-sys-on-secondary:           var(--bg-app);
+  --mat-sys-secondary-container:    var(--bg-elevated);
+  --mat-sys-on-secondary-container: var(--text-primary);
+
+  --mat-sys-error:                  var(--color-danger);
+  --mat-sys-on-error:               var(--color-neutral-0);
+  --mat-sys-error-container:        var(--color-danger-bg);
+  --mat-sys-on-error-container:     var(--color-danger-fg);
+
+  /* --- M3 system roles — surface --- */
+  --mat-sys-background:             var(--bg-app);
+  --mat-sys-on-background:          var(--text-primary);
+
+  --mat-sys-surface:                var(--bg-surface);
+  --mat-sys-on-surface:             var(--text-primary);
+  --mat-sys-surface-variant:        var(--bg-elevated);
+  --mat-sys-on-surface-variant:     var(--text-secondary);
+
+  --mat-sys-surface-container:      var(--bg-surface);
+  --mat-sys-surface-container-low:  var(--bg-sidebar);
+  --mat-sys-surface-container-high: var(--bg-elevated);
+
+  /* --- M3 system roles — outline --- */
+  --mat-sys-outline:                var(--border-default);
+  --mat-sys-outline-variant:        var(--border-subtle);
+
+  /* --- Legacy mat-app vars (still used by some M3 components) --- */
+  --mat-app-background-color:       var(--bg-app);
+  --mat-app-text-color:             var(--text-primary);
+  --mat-card-container-color:       var(--card-bg);
+  --mat-divider-color:              var(--border-subtle);
+}

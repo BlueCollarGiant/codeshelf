@@ -9,10 +9,21 @@ node_modules/
 # Build output
 dist/
 build/
+out-tsc/
+
+# Angular cache
+.angular/
+frontend/.angular/
 
 # Private build context — not for public tracking
 docs/
-frontend/
+
+# Local Claude Code settings
+.claude/
+
+# IDE
+**/.vscode/
+.idea/
 
 # OS
 .DS_Store
@@ -21,3 +32,4 @@ Thumbs.db
 # Logs
 *.log
 npm-debug.log*
+yarn-error.log
