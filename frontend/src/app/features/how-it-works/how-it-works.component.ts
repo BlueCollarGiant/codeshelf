@@ -279,22 +279,14 @@ import { RouterLink } from '@angular/router';
           and asks it to rate them. Private repos are <strong>never sent to AI</strong> — enforced in the server, not just the UI.
           The AI never sees your actual code, only the same metadata shown on the cards.
         </p>
-        <div class="hiw-factors">
-          <div class="hiw-factor">
-            <span class="hiw-factor__label">Skill rating (1–100)</span>
-            <ul class="hiw-factor__list">
-              <li>Does the repo look like real, intentional work?</li>
-              <li>Language, activity, and description quality</li>
-              <li>Topic signals — what stack, how specific</li>
-            </ul>
+        <div class="hiw-ai-legend">
+          <div class="hiw-ai-legend-item">
+            <span class="chip chip--ai">Skill 70</span>
+            <p><strong>Skill (1–100)</strong> — Does this repo look like real, intentional work? Rated on language, activity, description quality, and topic signals that indicate what stack and how deep.</p>
           </div>
-          <div class="hiw-factor">
-            <span class="hiw-factor__label">Professionalism rating (1–100)</span>
-            <ul class="hiw-factor__list">
-              <li>Would a stranger know what this is for?</li>
-              <li>Does it look maintained and documented?</li>
-              <li>Is it something you'd link in a CV?</li>
-            </ul>
+          <div class="hiw-ai-legend-item">
+            <span class="chip chip--ai">Prof. 60</span>
+            <p><strong>Professionalism (1–100)</strong> — Would a stranger immediately understand what this repo is for? Rated on presentation quality: description clarity, whether it looks maintained, and whether it's something you'd link in a CV.</p>
           </div>
         </div>
         <div class="hiw-ai-chips">
