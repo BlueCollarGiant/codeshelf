@@ -72,6 +72,44 @@ type StatusState = 'loading' | 'ok' | 'error' | 'unknown';
             <pre class="setup-page__code">GITHUB_TOKEN=your_token_here</pre>
           </li>
           <li>Restart the local server: <code>npm run dev</code></li>
+          <li>
+            <strong>Optional — Enable AI analysis.</strong>
+            Set <code>AI_PROVIDER</code> in <code>.env</code> to one of:
+            <table class="setup-page__ai-table">
+              <thead>
+                <tr>
+                  <th>Value</th>
+                  <th>Provider</th>
+                  <th>Key needed</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>openai</code></td>
+                  <td>OpenAI (GPT-4o)</td>
+                  <td><code>OPENAI_API_KEY</code></td>
+                </tr>
+                <tr>
+                  <td><code>anthropic</code></td>
+                  <td>Anthropic (Claude)</td>
+                  <td><code>ANTHROPIC_API_KEY</code></td>
+                </tr>
+                <tr>
+                  <td><code>ollama</code></td>
+                  <td>Ollama (local, free)</td>
+                  <td>None — runs on your machine</td>
+                </tr>
+                <tr>
+                  <td><code>mock</code></td>
+                  <td>Mock (test data)</td>
+                  <td>None</td>
+                </tr>
+              </tbody>
+            </table>
+            <pre class="setup-page__code">AI_PROVIDER=anthropic
+ANTHROPIC_API_KEY=your_key_here</pre>
+            Leave <code>AI_PROVIDER</code> unset to disable AI analysis entirely.
+          </li>
         </ol>
       </section>
 
@@ -165,6 +203,32 @@ type StatusState = 'loading' | 'ok' | 'error' | 'unknown';
       color: var(--color-blue-300);
     }
     .setup-page__cta { display: flex; justify-content: center; }
+    .setup-page__ai-table {
+      width: 100%;
+      margin-top: var(--space-3);
+      margin-bottom: var(--space-3);
+      border-collapse: collapse;
+      font-size: var(--font-size-sm);
+    }
+    .setup-page__ai-table th {
+      text-align: left;
+      padding: var(--space-2) var(--space-3);
+      background: var(--bg-elevated);
+      color: var(--text-muted);
+      font-size: var(--font-size-xs);
+      font-weight: var(--font-weight-semibold);
+      text-transform: uppercase;
+      letter-spacing: var(--tracking-wide);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .setup-page__ai-table td {
+      padding: var(--space-2) var(--space-3);
+      color: var(--text-secondary);
+      border-bottom: 1px solid var(--border-subtle);
+      vertical-align: middle;
+    }
+    .setup-page__ai-table tr:last-child td { border-bottom: none; }
+    .setup-page__ai-table tr:hover td { background: var(--bg-elevated); }
   `]
 })
 export class SetupComponent implements OnInit {
