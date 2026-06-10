@@ -21,18 +21,9 @@ Inspect your GitHub repositories, review local cleanup and portfolio scores, opt
 
 ## Screenshots
 
-Screenshots and a short demo GIF are planned but not captured yet.
+![CodeShelf dashboard](docs/screenshots/dashboard.png)
 
-Placeholder capture list:
-
-- Dashboard with public and private repo sections
-- Setup/status screen with token and AI configuration states
-- AI advisory results on public repo cards
-- Visibility warning and confirmation screen
-- Deletion confirmation and result report
-- 20-45 second demo GIF covering dashboard, analysis, and confirmation flow
-
-See [docs/screenshots.md](docs/screenshots.md) for the public media checklist.
+See [docs/screenshots.md](docs/screenshots.md) for the full media checklist.
 
 ---
 

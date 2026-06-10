@@ -1,12 +1,17 @@
 # Screenshots
 
-Screenshots, GIFs, and videos have not been captured yet. This page is a public placeholder checklist for the media pass.
+## Captured
 
-## Planned Captures
+### Dashboard
+![CodeShelf dashboard](screenshots/dashboard.png)
 
-- Dashboard showing public and private repo sections
+Stats bar, public/private repo sections, score chips (Portfolio, Cleanup, Activity, Completeness), suggestion badges, and the toolbar with search, sort, filter, and Analyse Public Repos.
+
+---
+
+## Still Needed
+
 - Setup screen showing token, GitHub, and AI status indicators
-- Repo cards with local suggestion badges and score chips
 - AI advisory results on public repo cards
 - Visibility warning screen for making repos public/private
 - Deletion confirmation screen
