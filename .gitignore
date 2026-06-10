@@ -15,9 +15,6 @@ out-tsc/
 .angular/
 frontend/.angular/
 
-# Private build context — not for public tracking
-docs/
-
 # Local Claude Code settings
 .claude/
 

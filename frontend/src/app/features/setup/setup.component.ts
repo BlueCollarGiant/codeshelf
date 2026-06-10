@@ -252,7 +252,7 @@ export class SetupComponent implements OnInit {
   readonly aiStatusText = () => {
     const ai = this.aiProvider();
     if (!ai) return 'Checking…';
-    if (ai.provider === 'none' || ai.provider === 'mock' && !ai.configured) return 'Not configured — set AI_PROVIDER in .env (optional)';
+    if (ai.provider === 'none') return 'Disabled — set AI_PROVIDER in .env to enable (optional)';
     if (!ai.configured) return `${ai.provider} selected but API key missing — add key to .env`;
     if (ai.provider === 'mock') return 'Mock provider active (no API key needed)';
     return `${ai.provider} configured`;

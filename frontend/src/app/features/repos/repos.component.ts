@@ -106,7 +106,8 @@ type DeleteState = 'idle' | 'confirming' | 'executing' | 'results';
           Refresh
         </button>
         <button mat-flat-button color="primary" class="controls__analyse"
-          [disabled]="aiState() === 'loading' || loadState() !== 'loaded'"
+          [disabled]="!aiEnabled() || aiState() === 'loading' || loadState() !== 'loaded'"
+          [title]="aiEnabled() ? '' : 'AI is disabled. Set AI_PROVIDER in .env to enable analysis.'"
           (click)="analysePublicRepos()">
           @if (aiState() === 'loading') { Analysing... } @else { Analyse Public Repos }
         </button>
@@ -437,6 +438,7 @@ export class ReposComponent implements OnInit {
   readonly suggestionFilter   = signal<SuggestionFilter>('all');
   readonly pendingAction      = signal<VisibilityAction | null>(null);
   readonly deleteToggleEnabled = signal<boolean>(false);
+  readonly aiEnabled          = signal<boolean>(false);
 
   readonly scoreMap = computed<Record<number, RepoScore>>(() => {
     const login = this.ownerLogin();
@@ -503,7 +505,17 @@ export class ReposComponent implements OnInit {
   readonly filteredPrivate = computed(() => this.filteredAndSorted().filter(r => r.private));
 
   async ngOnInit(): Promise<void> {
+    void this.loadAiStatus();
     await this.loadRepos();
+  }
+
+  private async loadAiStatus(): Promise<void> {
+    try {
+      const status = await this.aiApi.getStatus();
+      this.aiEnabled.set(status.provider !== 'none' && status.configured);
+    } catch {
+      this.aiEnabled.set(false);
+    }
   }
 
   async refresh(): Promise<void> {
@@ -544,6 +556,9 @@ export class ReposComponent implements OnInit {
   }
 
   toggleDeleteSelection(id: number, checked: boolean): void {
+    // Protected repos (profile repo) can never be marked for deletion,
+    // even if the disabled checkbox is bypassed.
+    if (checked && this.scoreMap()[id]?.classification.protected) return;
     this.deleteSelectedIds.update(current => {
       const next = new Set(current);
       if (checked) next.add(id); else next.delete(id);
@@ -576,7 +591,7 @@ export class ReposComponent implements OnInit {
       const scores = this.scoreMap();
       const map: Record<number, RepoAiResult> = {};
       for (const r of results) {
-        // Suppress delete suggestion for protected repo types (profile, config)
+        // Suppress delete suggestion for protected repos (classification.protected — the profile repo)
         const classification = scores[r.repoId]?.classification;
         map[r.repoId] = classification?.protected
           ? { ...r, suggestDeletion: false }

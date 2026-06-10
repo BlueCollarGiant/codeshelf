@@ -19,7 +19,7 @@ Thank you for your interest in contributing.
 
 - **Backend:** Node.js / Express. Bound to `127.0.0.1` only. All secrets in `.env`.
 - **Frontend:** Angular 22 standalone components. No NgModules. Signals preferred over RxJS where applicable.
-- **No database.** localStorage for dismiss/ignore state only.
+- **No database. No browser storage.**
 - **AI boundary:** AI calls happen in the backend only. Public repos only (`private === false`) — enforced in backend code.
 
 ---

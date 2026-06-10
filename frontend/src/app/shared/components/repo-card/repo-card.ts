@@ -16,13 +16,22 @@ import { RelativeDatePipe } from '../../pipes/relative-date.pipe';
     <article class="repo-card" [class.repo-card--selected]="selected()" [class.repo-card--delete]="markedForDelete()">
       <div class="repo-card__rail">
         @if (deleteMode()) {
-          <mat-checkbox
-            color="warn"
-            [checked]="markedForDelete()"
-            (change)="deleteChange.emit($event.checked)"
-            [aria-label]="'Mark ' + repo().name + ' for deletion'"
-          />
-          <span class="repo-card__rail-delete-label">Delete is live</span>
+          @if (isProtected()) {
+            <mat-checkbox
+              disabled
+              [checked]="false"
+              [aria-label]="repo().name + ' is protected and cannot be marked for deletion'"
+            />
+            <span class="repo-card__rail-protected-label">Protected</span>
+          } @else {
+            <mat-checkbox
+              color="warn"
+              [checked]="markedForDelete()"
+              (change)="deleteChange.emit($event.checked)"
+              [aria-label]="'Mark ' + repo().name + ' for deletion'"
+            />
+            <span class="repo-card__rail-delete-label">Delete is live</span>
+          }
         } @else {
           <mat-checkbox
             [checked]="selected()"
@@ -159,6 +168,12 @@ import { RelativeDatePipe } from '../../pipes/relative-date.pipe';
       text-align: center;
       line-height: 1;
     }
+    .repo-card__rail-protected-label {
+      font-size: var(--font-size-xs);
+      color: var(--text-muted);
+      text-align: center;
+      line-height: 1;
+    }
     .repo-card__body {
       min-width: 0;
       display: flex;
@@ -280,6 +295,10 @@ export class RepoCardComponent {
 
   visibilityClass(): string {
     return `badge badge--${this.repo().visibility}`;
+  }
+
+  isProtected(): boolean {
+    return this.score()?.classification.protected ?? false;
   }
 
   typeChipClass(type: RepoType): string {

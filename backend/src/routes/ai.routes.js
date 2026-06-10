@@ -7,11 +7,13 @@ import { OllamaProvider } from '../ai/ollama.provider.js';
 const router = Router();
 
 function getProvider() {
-  const p = (process.env.AI_PROVIDER || 'mock').toLowerCase();
+  const p = (process.env.AI_PROVIDER || 'none').toLowerCase();
   if (p === 'openai')    return new OpenAiProvider();
   if (p === 'anthropic') return new AnthropicProvider();
   if (p === 'ollama')    return new OllamaProvider();
-  return new MockLlmProvider();
+  if (p === 'mock')      return new MockLlmProvider();
+  // 'none', unset, or unrecognised — AI is disabled. Mock only runs when explicitly chosen.
+  return null;
 }
 
 function getProviderStatus() {
@@ -34,6 +36,11 @@ router.post('/analyse', async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'repos array is required.' });
     }
 
+    const provider = getProvider();
+    if (!provider) {
+      return res.status(503).json({ success: false, message: 'AI analysis is disabled. Set AI_PROVIDER in .env to enable it.' });
+    }
+
     // Mandatory AI boundary — private repos never reach any external provider.
     // Enforced here in backend code, not just UI.
     const publicOnly = repos.filter(r => r.private === false);
@@ -42,7 +49,6 @@ router.post('/analyse', async (req, res, next) => {
       return res.json({ results: [] });
     }
 
-    const provider = getProvider();
     const results = await provider.analyzeRepos(publicOnly);
     res.json({ results });
   } catch (err) {

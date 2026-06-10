@@ -16,7 +16,6 @@ Inspect your GitHub repositories, review local cleanup and portfolio scores, opt
 - Optionally runs AI analysis on public repos only
 - Lets you manually choose repos for visibility changes or deletion
 - Shows a mandatory warning and confirmation screen before any write action executes
-- Stores dismissed suggestions in browser localStorage only
 
 ---
 
@@ -33,11 +32,13 @@ Placeholder capture list:
 - Deletion confirmation and result report
 - 20-45 second demo GIF covering dashboard, analysis, and confirmation flow
 
-See [guides/screenshots.md](guides/screenshots.md) for the public media checklist.
+See [docs/screenshots.md](docs/screenshots.md) for the public media checklist.
 
 ---
 
 ## Quick Start
+
+Requires Node.js 20 or newer.
 
 ```bash
 # 1. Clone the repo
@@ -58,6 +59,8 @@ npm run dev
 Open [http://localhost:4200](http://localhost:4200).
 
 The setup screen shows your connection status and walks through missing configuration.
+
+Something not working? See [docs/troubleshooting.md](docs/troubleshooting.md).
 
 ---
 
@@ -98,6 +101,8 @@ AI is optional. Set `AI_PROVIDER` in `.env`:
 | `anthropic` | `ANTHROPIC_API_KEY` |
 | `ollama` | No cloud key; uses local Ollama |
 
+If `AI_PROVIDER` is unset or `none`, AI analysis is disabled — the analyse button is greyed out and the backend rejects analysis requests. The mock provider only runs when explicitly set to `mock`.
+
 AI analysis only receives public repository metadata. Private repos are filtered in backend code before any AI provider is called.
 
 AI results are advisory only. They never select repos, trigger writes, or call GitHub.
@@ -114,7 +119,7 @@ AI results are advisory only. They never select repos, trigger writes, or call G
 - Visibility changes and deletion require manual selection plus confirmation
 - CodeShelf is designed for localhost use only; do not deploy it publicly
 
-See [guides/security.md](guides/security.md) for the public security notes.
+See [docs/security.md](docs/security.md) for the public security notes.
 
 ---
 
@@ -122,7 +127,7 @@ See [guides/security.md](guides/security.md) for the public security notes.
 
 No runtime demo mode is built into the app. A future screenshot/GIF walkthrough will show the normal local workflow without adding fake user-facing data paths.
 
-See [guides/demo.md](guides/demo.md) for the planned public walkthrough.
+See [docs/demo.md](docs/demo.md) for the planned public walkthrough.
 
 ---
 
@@ -134,7 +139,7 @@ See [guides/demo.md](guides/demo.md) for the planned public walkthrough.
 | `npm run dev` | Start Angular on port 4200 and Express on port 3000 |
 | `npm run dev:frontend` | Start Angular only |
 | `npm run dev:backend` | Start Express only |
-| `npm run build` | Build frontend and backend |
+| `npm run build` | Build the frontend (the backend runs directly from source) |
 
 ---
 
@@ -146,8 +151,21 @@ See [guides/demo.md](guides/demo.md) for the planned public walkthrough.
 | Backend | Node.js + Express, localhost only |
 | Auth | GitHub PAT in `.env`, backend-only |
 | AI | Adapter pattern selected by `AI_PROVIDER` |
-| Storage | localStorage for dismissed suggestions only |
+| Storage | None — no browser storage |
 | Database | None |
+
+---
+
+## Documentation
+
+| Guide | Covers |
+|---|---|
+| [docs/architecture.md](docs/architecture.md) | Frontend/backend structure, data flow, API endpoints, data model, design decisions |
+| [docs/scoring.md](docs/scoring.md) | Repo classification rules, all four score formulas, suggestion badges, protected repos |
+| [docs/security.md](docs/security.md) | Token handling, scopes, AI boundary, localhost-only model |
+| [docs/troubleshooting.md](docs/troubleshooting.md) | Setup, token, AI, and deletion issues |
+| [docs/demo.md](docs/demo.md) | What you'll see after setup |
+| [docs/screenshots.md](docs/screenshots.md) | Planned media checklist |
 
 ---
 

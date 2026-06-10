@@ -328,6 +328,10 @@
   --delete-toggle-border-active: var(--color-danger);
   --delete-toggle-fg:          var(--text-muted);
   --delete-toggle-fg-active:   var(--color-danger-fg);
+  --delete-toggle-switch-width:  2.25rem;
+  --delete-toggle-switch-height: var(--space-5);
+  --delete-toggle-thumb-size:    0.875rem;
+  --delete-toggle-thumb-translate: calc(var(--delete-toggle-switch-width) - var(--delete-toggle-thumb-size) - var(--space-2));
   /* Icon: shield-check (off) → warning-triangle (on). Label: "Enable deletion" → "Deletion enabled" */
 
   /* --- Warning / confirmation screen --- */
