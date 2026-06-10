@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "description": "A localhost GitHub repository review and management tool",
   "private": true,
+  "engines": {
+    "node": "^22.22.3 || ^24.15.0 || >=26.0.0"
+  },
   "scripts": {
     "install:all": "npm install && npm install --prefix frontend && npm install --prefix backend",
     "dev": "concurrently -n front,back -c cyan,green \"npm run dev:frontend\" \"npm run dev:backend\"",

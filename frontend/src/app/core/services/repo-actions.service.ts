@@ -2,8 +2,8 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { VisibilityRequest, VisibilityResponse, DeleteRequest, DeleteResponse } from '../models/action-result.model';
+import { API_BASE as API } from '../api.constants';
 
-const API = 'http://localhost:3000/api';
 const ACTION_HEADER = 'X-CodeShelf-Action';
 
 @Injectable({ providedIn: 'root' })

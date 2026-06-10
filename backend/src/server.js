@@ -8,7 +8,15 @@ import aiRoutes from './routes/ai.routes.js';
 
 const app = express();
 
-const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || 'http://localhost:4200';
+// CORS stays localhost-only. ALLOWED_ORIGIN exists to support a non-default
+// frontend port — non-localhost values are rejected and the default is used.
+const DEFAULT_ORIGIN = 'http://localhost:4200';
+const requestedOrigin = process.env.ALLOWED_ORIGIN || DEFAULT_ORIGIN;
+const isLocalhostOrigin = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(requestedOrigin);
+if (!isLocalhostOrigin) {
+  console.warn(`[backend] ALLOWED_ORIGIN "${requestedOrigin}" is not a localhost origin - falling back to ${DEFAULT_ORIGIN}`);
+}
+const ALLOWED_ORIGIN = isLocalhostOrigin ? requestedOrigin : DEFAULT_ORIGIN;
 
 app.use(cors({ origin: ALLOWED_ORIGIN }));
 app.use(express.json());

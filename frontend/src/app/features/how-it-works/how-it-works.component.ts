@@ -149,7 +149,7 @@ import { RouterLink } from '@angular/router';
           Activity Score
         </h2>
         <p class="hiw-section__intro">
-          A simple staleness signal based on when the repo was last pushed to.
+          A simple staleness signal based on when the repo was last updated.
         </p>
         <div class="hiw-activity-table">
           <div class="hiw-activity-row">

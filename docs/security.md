@@ -5,7 +5,7 @@ CodeShelf is a localhost-first GitHub repository review tool. It is not designed
 ## Localhost Boundary
 
 - The Express backend binds to `127.0.0.1`.
-- CORS is restricted to `http://localhost:4200`.
+- CORS is restricted to localhost origins. The default is `http://localhost:4200`; `ALLOWED_ORIGIN` can change the port, but non-localhost values are rejected at startup and the default is used.
 - The frontend calls only the local Express API.
 - The frontend never calls GitHub directly.
 
@@ -71,6 +71,7 @@ Visibility changes and deletion are manual workflows:
 - The backend receives only confirmed actions.
 - Backend routes require the expected `X-CodeShelf-Action` header.
 - Deletion is gated by a session-only UI safety toggle and confirmation screen.
+- The profile repo (name matches your login) is refused by the backend delete route, in addition to its disabled checkbox in the UI.
 
 ## Public Deployment Warning
 

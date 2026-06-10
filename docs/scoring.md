@@ -34,6 +34,7 @@ The in-app **How It Works** page covers the same material for end users; this do
 - No delete-leaning suggestion can ever fire locally.
 - AI delete suggestions are stripped from results before display.
 - The delete checkbox on the repo card is **disabled** — a protected repo cannot be marked for deletion even with the deletion toggle on.
+- The backend delete route independently refuses the profile repo, so even a request that bypasses the UI cannot delete it.
 
 ---
 

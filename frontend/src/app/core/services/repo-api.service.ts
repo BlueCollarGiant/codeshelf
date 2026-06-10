@@ -4,8 +4,7 @@ import { firstValueFrom } from 'rxjs';
 import { SafeGitHubRepo } from '../models/github-repo.model';
 import { GitHubStatus } from '../models/github-status.model';
 import { GitHubUser } from '../models/github-user.model';
-
-const API = 'http://localhost:3000/api';
+import { API_BASE as API } from '../api.constants';
 
 @Injectable({ providedIn: 'root' })
 export class RepoApiService {

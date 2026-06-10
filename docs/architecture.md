@@ -38,7 +38,7 @@ codeshelf/
 │       └── shared/           repo-card, badges, stat cards, loading/empty/error states
 ├── backend/
 │   └── src/
-│       ├── server.js         binds 127.0.0.1, CORS restricted to localhost:4200
+│       ├── server.js         binds 127.0.0.1, CORS locked to localhost origins
 │       ├── config/env.js     loads .env from the repo root
 │       ├── routes/           health, github, ai
 │       ├── services/         github.service.js — token, pagination, GitHub calls
@@ -62,7 +62,7 @@ All configuration lives in a single `.env` at the repo root. See [.env.example](
 |---|---|---|
 | `GITHUB_TOKEN` | Yes | GitHub Personal Access Token. Server-side only. |
 | `PORT` | No (default 3000) | Backend port. |
-| `ALLOWED_ORIGIN` | No (default `http://localhost:4200`) | CORS origin for the Angular dev server. |
+| `ALLOWED_ORIGIN` | No (default `http://localhost:4200`) | CORS origin for the Angular dev server. Must be a localhost origin — non-localhost values are rejected and the default is used. |
 | `AI_PROVIDER` | No (default disabled) | `openai`, `anthropic`, `ollama`, `mock`, or `none`. Unset, `none`, or any unrecognised value disables AI entirely. |
 | `OPENAI_API_KEY` | Only if `AI_PROVIDER=openai` | |
 | `ANTHROPIC_API_KEY` | Only if `AI_PROVIDER=anthropic` | |
@@ -94,7 +94,7 @@ Write routes require a custom header as a deliberate-action gate. Requests witho
 | `POST /api/github/repos/visibility` | `X-CodeShelf-Action: visibility` | `{ repos: [{ fullName, visibility: "public" \| "private" }] }` |
 | `POST /api/github/repos/delete` | `X-CodeShelf-Action: delete` | `{ repos: [{ fullName }] }` |
 
-Both return `{ success, results: [{ fullName, success, message? , ...}] }`. The delete loop stops early if GitHub rejects the token (401).
+Both return `{ success, results: [{ fullName, success, message? , ...}] }`. The delete loop stops early if GitHub rejects the token (401), and the backend refuses to delete the profile repo (name matches the owner's login) regardless of what the request contains.
 
 ### AI endpoint
 
@@ -102,7 +102,7 @@ Both return `{ success, results: [{ fullName, success, message? , ...}] }`. The 
 |---|---|---|
 | `POST /api/ai/analyse` | `{ repos: SafeGitHubRepo[] }` | Returns `{ results: RepoAiResult[] }`. Returns **503** when AI is disabled. |
 
-**AI boundary (enforced in backend code):** before any provider is called, the backend filters the submitted repos to `private === false`. Each provider's prompt builder then strips repos down to an AI-safe field subset (name, description, language, topics, stars, forks, dates, fork/archived flags, license presence). AI never receives the GitHub token, `.env` values, or private repo data, and has no path to any write endpoint.
+**AI boundary (enforced in backend code):** before any provider is called, the backend filters the submitted repos to `private === false`. Every provider then strips repos down to a single shared AI-safe field subset (`toAiSafePayload()` in [backend/src/ai/shared.js](../backend/src/ai/shared.js) — name, description, language, topics, stars, forks, update date, fork/archived flags, license presence). AI never receives the GitHub token, `.env` values, or private repo data, and has no path to any write endpoint.
 
 ---
 

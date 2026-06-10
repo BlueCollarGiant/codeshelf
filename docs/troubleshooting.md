@@ -8,10 +8,10 @@ Common issues when running CodeShelf locally, roughly in the order you'd hit the
 
 **`npm run dev` fails immediately or commands are not found**
 - Run `npm run install:all` first — it installs root, frontend, and backend dependencies.
-- CodeShelf requires **Node.js 20 or newer** (the backend uses the built-in `fetch` and `node --watch`; Angular 22 also requires it). Check with `node --version`.
+- CodeShelf requires **Node.js 22.22+ or 24.15+** (Angular 22's supported range; enforced via `engines` in package.json). Check with `node --version`, or run `nvm use` — an `.nvmrc` is included.
 
 **Port already in use**
-- Backend (3000): set `PORT` in `.env` — then also update the frontend services if you change it, since they call `http://localhost:3000/api`.
+- Backend (3000): set `PORT` in `.env`, then update `API_BASE` in `frontend/src/app/core/api.constants.ts` to match — it is the single place the frontend stores the backend address.
 - Frontend (4200): the port is set in `frontend/angular.json`. If you change it, update `ALLOWED_ORIGIN` in `.env` to match, or CORS will block the app.
 
 ---

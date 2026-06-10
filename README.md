@@ -38,7 +38,7 @@ See [docs/screenshots.md](docs/screenshots.md) for the public media checklist.
 
 ## Quick Start
 
-Requires Node.js 20 or newer.
+Requires Node.js 22.22+ (or 24.15+). An `.nvmrc` is included — `nvm use` picks a compatible version.
 
 ```bash
 # 1. Clone the repo
@@ -112,7 +112,7 @@ AI results are advisory only. They never select repos, trigger writes, or call G
 ## Safety Model
 
 - Express binds to `127.0.0.1` only
-- CORS is restricted to `http://localhost:4200`
+- CORS is restricted to localhost origins (default `http://localhost:4200`; non-localhost `ALLOWED_ORIGIN` values are rejected)
 - The GitHub token lives only in `.env` and `process.env.GITHUB_TOKEN`
 - Angular never reads `.env` and never receives the token
 - GitHub responses are sanitized before reaching the frontend

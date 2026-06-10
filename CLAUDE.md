@@ -153,4 +153,4 @@ codeshelf/
 └── package.json          ← npm run dev starts both servers
 ```
 
-Maintainer note: a `docs/` folder may exist locally — it is gitignored, private build context, and not part of the public repository. Do not reference it from tracked files.
+The `docs/` folder is tracked, public documentation. Keep it in sync with the code — if behavior changes, update the matching doc in the same change.

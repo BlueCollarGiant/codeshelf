@@ -80,8 +80,22 @@ router.post('/repos/delete', async (req, res, next) => {
     }
   }
 
+  // Backend-side guard: the profile repo (name matches the owner's login) is
+  // never deleted, even if a request bypasses the UI's disabled checkbox.
+  let ownerLogin = null;
+  try {
+    ownerLogin = (await getAuthenticatedUser()).login?.toLowerCase() ?? null;
+  } catch {
+    // Token problems surface per-repo below; the guard just can't apply.
+  }
+
   const results = [];
   for (const { fullName } of repos) {
+    const repoName = fullName.split('/')[1]?.toLowerCase();
+    if (ownerLogin && repoName === ownerLogin) {
+      results.push({ fullName, success: false, status: 'failed', message: 'This is your GitHub profile repo. CodeShelf will not delete it.' });
+      continue;
+    }
     try {
       await deleteRepo(fullName);
       results.push({ fullName, success: true, status: 'deleted' });

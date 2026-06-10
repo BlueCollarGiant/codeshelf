@@ -1,3 +1,7 @@
+/**
+ * Dev-only fixture. Not imported by the app — there is no runtime demo mode.
+ * Kept for UI development and screenshot capture without a real GitHub account.
+ */
 import { SafeGitHubRepo } from '../app/core/models/github-repo.model';
 
 const now = new Date();

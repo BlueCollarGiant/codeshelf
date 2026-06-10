@@ -3,8 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { SafeGitHubRepo } from '../models/github-repo.model';
 import { RepoAiResult } from '../models/repo-ai-result.model';
-
-const API = 'http://localhost:3000/api';
+import { API_BASE as API } from '../api.constants';
 
 export interface AiProviderStatus {
   provider: string;
