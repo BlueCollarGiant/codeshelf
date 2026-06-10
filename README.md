@@ -29,7 +29,7 @@ See [docs/screenshots.md](docs/screenshots.md) for the full media checklist.
 
 ## Quick Start
 
-Requires Node.js 22.22+ (or 24.15+). An `.nvmrc` is included; `nvm use` picks a compatible version.
+Requires Node.js 22.22+ (or 24.15+), available at [nodejs.org/en/download](https://nodejs.org/en/download) (npm is included). An `.nvmrc` is included; `nvm use` picks a compatible version.
 
 ```bash
 # 1. Clone the repo
@@ -48,6 +48,8 @@ npm run dev
 ```
 
 Open [http://localhost:4200](http://localhost:4200).
+
+All commands run from the `codeshelf` folder (the repo root). No global Angular CLI or Express install is needed; `npm run install:all` installs everything locally inside the project.
 
 The setup screen shows your connection status and walks through missing configuration.
 

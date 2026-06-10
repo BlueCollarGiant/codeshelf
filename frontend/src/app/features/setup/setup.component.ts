@@ -58,7 +58,27 @@ type StatusState = 'loading' | 'ok' | 'error' | 'unknown';
         <h2 class="setup-page__section-title">Setup</h2>
         <ol class="setup-page__steps">
           <li>
-            Copy <code>.env.example</code> to <code>.env</code> in the repo root:
+            <strong>Install Node.js.</strong> CodeShelf needs Node.js 22.22+ (or 24.15+).
+            Download it from
+            <a class="setup-page__link" href="https://nodejs.org/en/download" target="_blank" rel="noopener noreferrer">nodejs.org/en/download</a>
+            and run the installer; npm is included automatically. Check what you have with:
+            <pre class="setup-page__code">node --version</pre>
+            Using nvm? Run <code>nvm use</code> inside the repo folder. An <code>.nvmrc</code> is included.
+          </li>
+          <li>
+            <strong>Get the code.</strong> Clone the repo into any folder you keep projects in, then move into it:
+            <pre class="setup-page__code">git clone https://github.com/BlueCollarGiant/codeshelf.git
+cd codeshelf</pre>
+            Every command from here on runs from this <code>codeshelf</code> folder (the repo root, where <code>package.json</code> lives).
+          </li>
+          <li>
+            <strong>Install dependencies.</strong>
+            <pre class="setup-page__code">npm run install:all</pre>
+            One command installs everything: the root tooling, the Angular frontend, and the Express backend.
+            You do not need to install Angular, the Angular CLI, or Express globally; the project carries its own local copies.
+          </li>
+          <li>
+            <strong>Create your environment file.</strong> Copy <code>.env.example</code> to <code>.env</code> in the repo root:
             <pre class="setup-page__code">cp .env.example .env</pre>
           </li>
           <li>
@@ -107,10 +127,15 @@ type StatusState = 'loading' | 'ok' | 'error' | 'unknown';
             Note that <code>delete_repo</code> is not included in classic <code>repo</code>; it must be checked separately.
           </li>
           <li>
-            Add your token to <code>.env</code>:
+            <strong>Add your token to <code>.env</code>.</strong> Open the file in any editor and paste the token:
             <pre class="setup-page__code">GITHUB_TOKEN=your_token_here</pre>
           </li>
-          <li>Restart the local server: <code>npm run dev</code></li>
+          <li>
+            <strong>Start both servers.</strong>
+            <pre class="setup-page__code">npm run dev</pre>
+            Angular runs at <code>http://localhost:4200</code> and the Express backend at <code>http://127.0.0.1:3000</code>.
+            The backend reads <code>.env</code> once at startup, so restart this command after any <code>.env</code> change.
+          </li>
           <li>
             <strong>Optional: Enable AI analysis.</strong>
             Set <code>AI_PROVIDER</code> in <code>.env</code> to one of:
