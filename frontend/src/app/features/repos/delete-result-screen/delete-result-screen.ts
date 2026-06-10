@@ -50,7 +50,7 @@ import { DeleteResult } from '../../../core/models/action-result.model';
 
           @if (failed().length > 0) {
             <div class="result-section">
-              <h3 class="result-section-title">Failed — Still Exists on GitHub</h3>
+              <h3 class="result-section-title">Failed: Still Exists on GitHub</h3>
               <ul class="result-list">
                 @for (r of failed(); track r.fullName) {
                   <li class="result-item result-item--failed">

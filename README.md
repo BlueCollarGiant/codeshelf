@@ -29,7 +29,7 @@ See [docs/screenshots.md](docs/screenshots.md) for the full media checklist.
 
 ## Quick Start
 
-Requires Node.js 22.22+ (or 24.15+). An `.nvmrc` is included — `nvm use` picks a compatible version.
+Requires Node.js 22.22+ (or 24.15+). An `.nvmrc` is included; `nvm use` picks a compatible version.
 
 ```bash
 # 1. Clone the repo
@@ -60,21 +60,39 @@ Something not working? See [docs/troubleshooting.md](docs/troubleshooting.md).
 CodeShelf requires a GitHub Personal Access Token in your local `.env` file.
 The token is used only by the local Express server. It never reaches Angular, browser storage, AI providers, or API responses.
 
-**Fine-grained PAT (recommended)**
+**Where the token page hides**
 
-GitHub -> Settings -> Developer Settings -> Personal access tokens -> Fine-grained tokens
+GitHub buries token creation four screens deep. The exact path for a classic token:
 
-| What you need | Permission |
-|---|---|
-| Read repos and metadata | Repository -> Metadata -> Read-only |
-| Change repo visibility | Repository -> Administration -> Read/write |
-| Delete repos | Repository -> Administration -> Read/write |
+1. Go to [github.com/settings/profile](https://github.com/settings/profile) (your avatar, then **Settings**)
+2. Scroll the left sidebar to the bottom and click **Developer settings**
+3. Click **Personal access tokens**, then **Tokens (classic)**
+4. Click **Generate new token**, then **Generate new token (classic)**
+5. Check the scopes from the table below and click **Generate token**
+6. Copy the token immediately (GitHub shows it only once) and add it to `.env`:
 
-**Classic PAT (fallback)**
+```env
+GITHUB_TOKEN=ghp_your_token_here
+```
 
-Use `repo` for repo reads and visibility changes. Add `delete_repo` only if you intend to use deletion.
+Shortcut links that open the form with scopes pre-selected:
 
-Classic `repo` grants more access than CodeShelf needs, so the fine-grained token is the safer default.
+- [Token for viewing and visibility changes](https://github.com/settings/tokens/new?description=CodeShelf&scopes=repo) (`repo`)
+- [Token including deletion](https://github.com/settings/tokens/new?description=CodeShelf&scopes=repo,delete_repo) (`repo` + `delete_repo`)
+
+**Scopes by feature**
+
+| What you want to do | Classic scopes | Fine-grained permission |
+|---|---|---|
+| View and score repos | `repo` | Metadata: Read-only |
+| Change repo visibility | `repo` | Administration: Read/write |
+| Delete repos | `repo` + `delete_repo` | Administration: Read/write |
+
+Note: `delete_repo` is not included in classic `repo`; check it separately if you want deletion.
+
+**Fine-grained tokens (safer if you only need reading)**
+
+Create one at [github.com/settings/personal-access-tokens/new](https://github.com/settings/personal-access-tokens/new) with **Repository access: All repositories** and the permissions from the table. Fine-grained tokens can grant far less than classic `repo`, so they are the better choice for read-only use.
 
 Do not request `workflow`, `admin:org`, package, gist, notification, or user scopes for CodeShelf.
 
@@ -92,7 +110,7 @@ AI is optional. Set `AI_PROVIDER` in `.env`:
 | `anthropic` | `ANTHROPIC_API_KEY` |
 | `ollama` | No cloud key; uses local Ollama |
 
-If `AI_PROVIDER` is unset or `none`, AI analysis is disabled — the analyse button is greyed out and the backend rejects analysis requests. The mock provider only runs when explicitly set to `mock`.
+If `AI_PROVIDER` is unset or `none`, AI analysis is disabled: the analyse button is greyed out and the backend rejects analysis requests. The mock provider only runs when explicitly set to `mock`.
 
 AI analysis only receives public repository metadata. Private repos are filtered in backend code before any AI provider is called.
 
@@ -142,7 +160,7 @@ See [docs/demo.md](docs/demo.md) for the planned public walkthrough.
 | Backend | Node.js + Express, localhost only |
 | Auth | GitHub PAT in `.env`, backend-only |
 | AI | Adapter pattern selected by `AI_PROVIDER` |
-| Storage | None — no browser storage |
+| Storage | None (no browser storage) |
 | Database | None |
 
 ---

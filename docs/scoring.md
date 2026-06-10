@@ -1,17 +1,17 @@
 # Scoring and Classification
 
-Every repo gets four scores (portfolio, cleanup, activity, completeness) and a set of suggestion badges. All of it is computed **locally** by pure TypeScript functions — no AI, no network calls. The code lives in:
+Every repo gets four scores (portfolio, cleanup, activity, completeness) and a set of suggestion badges. All of it is computed **locally** by pure TypeScript functions: no AI, no network calls. The code lives in:
 
-- [frontend/src/app/core/utils/repo-classifier.utils.ts](../frontend/src/app/core/utils/repo-classifier.utils.ts) — classification
-- [frontend/src/app/core/utils/repo-score.utils.ts](../frontend/src/app/core/utils/repo-score.utils.ts) — scoring + suggestions
+- [frontend/src/app/core/utils/repo-classifier.utils.ts](../frontend/src/app/core/utils/repo-classifier.utils.ts) (classification)
+- [frontend/src/app/core/utils/repo-score.utils.ts](../frontend/src/app/core/utils/repo-score.utils.ts) (scoring + suggestions)
 
 The in-app **How It Works** page covers the same material for end users; this doc is the precise reference.
 
 ---
 
-## Step 1 — Classification (always runs before scoring)
+## Step 1: Classification (always runs before scoring)
 
-`classifyRepo(repo, ownerLogin)` assigns exactly one type. Checks run in this order — first match wins:
+`classifyRepo(repo, ownerLogin)` assigns exactly one type. Checks run in this order, and the first match wins:
 
 | Order | Type | Condition |
 |---|---|---|
@@ -33,12 +33,12 @@ The in-app **How It Works** page covers the same material for end users; this do
 - Cleanup score is pinned to **0**.
 - No delete-leaning suggestion can ever fire locally.
 - AI delete suggestions are stripped from results before display.
-- The delete checkbox on the repo card is **disabled** — a protected repo cannot be marked for deletion even with the deletion toggle on.
+- The delete checkbox on the repo card is **disabled**: a protected repo cannot be marked for deletion even with the deletion toggle on.
 - The backend delete route independently refuses the profile repo, so even a request that bypasses the UI cannot delete it.
 
 ---
 
-## Step 2 — Scoring (type-specific)
+## Step 2: Scoring (type-specific)
 
 Each type routes to its own scorer. All scores are 0–100.
 
@@ -56,7 +56,7 @@ Each type routes to its own scorer. All scores are 0–100.
 | Score | Formula |
 |---|---|
 | Portfolio | 40 with description, 20 without |
-| Cleanup | Always **0** — config repos are intentional, never cleanup candidates |
+| Cleanup | Always **0**; config repos are intentional, never cleanup candidates |
 | Completeness | 50 with description, 25 without |
 | Activity | 40 if updated < 12 mo, else 10 |
 
@@ -69,7 +69,7 @@ Each type routes to its own scorer. All scores are 0–100.
 | Completeness | 60 with description, 30 without |
 | Activity | 40 if updated < 12 mo, else 10 |
 
-### Everything else (standard scorer — includes forks and archived repos)
+### Everything else (standard scorer, includes forks and archived repos)
 
 **Portfolio** (clamped 0–100):
 
@@ -102,7 +102,7 @@ Each type routes to its own scorer. All scores are 0–100.
 
 ---
 
-## Step 3 — Suggestions (type-aware)
+## Step 3: Suggestions (type-aware)
 
 | Repo type | Possible badges |
 |---|---|
@@ -127,7 +127,7 @@ Standard-path badges:
 
 ## AI ratings (optional, separate layer)
 
-When AI analysis is enabled, public repos also get advisory `skillRating` / `professionalismRating` (0–100), optional *consider deleting* / *consider private* flags, and a short summary. These never feed back into the local scores — they are displayed side by side, and the user makes every decision. See [security.md](security.md) for the AI boundary.
+When AI analysis is enabled, public repos also get advisory `skillRating` / `professionalismRating` (0–100), optional *consider deleting* / *consider private* flags, and a short summary. These never feed back into the local scores; they are displayed side by side, and the user makes every decision. See [security.md](security.md) for the AI boundary.
 
 ---
 
@@ -135,5 +135,5 @@ When AI analysis is enabled, public repos also get advisory `skillRating` / `pro
 
 - "Months" are approximated as 30 days.
 - Recency uses `updatedAt` (any repo activity), not `pushedAt` (commits only).
-- Activity score tops out at 50, and profile-repo completeness at 60 — treat scores as guides for comparison, not absolute grades.
+- Activity score tops out at 50, and profile-repo completeness at 60. Treat scores as guides for comparison, not absolute grades.
 - Template detection relies on the name/topic heuristic; GitHub's `is_template` flag is not currently used.

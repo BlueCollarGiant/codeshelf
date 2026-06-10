@@ -6,7 +6,7 @@ const DOTFILE_NAMES = new Set(['.dotfiles', 'dotfiles', '.config', 'config', 'se
 const CONFIG_TOPICS = new Set(['dotfiles', 'config', 'setup', 'macos', 'linux', 'windows', 'shell', 'zsh', 'bash', 'powershell']);
 
 const LABELS: Record<RepoType, { label: string; description: string }> = {
-  profile_repo:      { label: 'Profile repo',       description: 'Your GitHub profile README repo. Protected — do not delete.' },
+  profile_repo:      { label: 'Profile repo',       description: 'Your GitHub profile README repo. Protected. Do not delete.' },
   portfolio_project: { label: 'Portfolio project',  description: 'Public, active, and well-described. Good to showcase.' },
   active_project:    { label: 'Active project',     description: 'Recently updated and in use.' },
   experiment:        { label: 'Experiment',          description: 'Looks like a personal experiment or learning project.' },
@@ -14,7 +14,7 @@ const LABELS: Record<RepoType, { label: string; description: string }> = {
   fork:              { label: 'Fork',                description: 'A fork of someone else\'s repo.' },
   template:          { label: 'Template',            description: 'A template repo for starting new projects.' },
   config_or_dotfiles:{ label: 'Config / dotfiles',  description: 'Personal config or environment setup files.' },
-  archived:          { label: 'Archived',            description: 'Archived on GitHub — read-only and inactive.' },
+  archived:          { label: 'Archived',            description: 'Archived on GitHub. Read-only and inactive.' },
   unknown:           { label: 'Repo',                description: 'General repository.' },
 };
 

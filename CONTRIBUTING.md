@@ -20,13 +20,13 @@ Thank you for your interest in contributing.
 - **Backend:** Node.js / Express. Bound to `127.0.0.1` only. All secrets in `.env`.
 - **Frontend:** Angular 22 standalone components. No NgModules. Signals preferred over RxJS where applicable.
 - **No database. No browser storage.**
-- **AI boundary:** AI calls happen in the backend only. Public repos only (`private === false`) — enforced in backend code.
+- **AI boundary:** AI calls happen in the backend only. Public repos only (`private === false`), enforced in backend code.
 
 ---
 
 ## Pull Requests
 
-- Keep PRs focused — one concern per PR
+- Keep PRs focused: one concern per PR
 - Describe what changed and why
 - Make sure both servers start without errors before submitting
 - Do not commit `.env`

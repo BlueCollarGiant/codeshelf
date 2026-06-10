@@ -1,6 +1,6 @@
 # AGENTS.md
 
-This file routes any AI agent — regardless of platform — to the right starting point.
+This file routes any AI agent, regardless of platform, to the right starting point.
 
 ## Start Here
 
@@ -11,7 +11,7 @@ Read `CLAUDE.md` at the project root before doing anything else.
 - The full stack decision and architecture summary
 - Security rules and token safety constraints
 - The AI boundary rules
-- Agent rules — what you must never do
+- Agent rules: what you must never do
 
 ## Do Not Start Coding
 

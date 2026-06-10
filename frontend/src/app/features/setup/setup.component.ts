@@ -62,10 +62,49 @@ type StatusState = 'loading' | 'ok' | 'error' | 'unknown';
             <pre class="setup-page__code">cp .env.example .env</pre>
           </li>
           <li>
-            Create a GitHub Personal Access Token at
-            <strong>GitHub → Settings → Developer Settings → Personal access tokens</strong>.
-            <br />
-            Required permission: <code>Metadata — read-only</code> (fine-grained) or <code>repo</code> (classic).
+            <strong>Create a GitHub Personal Access Token.</strong> GitHub buries this page, so here is the exact path:
+            <ol class="setup-page__substeps">
+              <li>Open <a class="setup-page__link" href="https://github.com/settings/profile" target="_blank" rel="noopener noreferrer">github.com/settings/profile</a> (your avatar → <strong>Settings</strong>)</li>
+              <li>Scroll the left sidebar to the bottom → <strong>Developer settings</strong></li>
+              <li><strong>Personal access tokens</strong> → <strong>Tokens (classic)</strong></li>
+              <li><strong>Generate new token</strong> → <strong>Generate new token (classic)</strong></li>
+              <li>Check the scopes from the table below, then click <strong>Generate token</strong></li>
+              <li>Copy the token immediately. GitHub shows it only once</li>
+            </ol>
+            Or skip the clicking: these links open the form with scopes pre-selected.
+            <ul class="setup-page__substeps">
+              <li><a class="setup-page__link" href="https://github.com/settings/tokens/new?description=CodeShelf&amp;scopes=repo" target="_blank" rel="noopener noreferrer">Token for viewing + visibility changes</a> (<code>repo</code>)</li>
+              <li><a class="setup-page__link" href="https://github.com/settings/tokens/new?description=CodeShelf&amp;scopes=repo,delete_repo" target="_blank" rel="noopener noreferrer">Token including deletion</a> (<code>repo</code> + <code>delete_repo</code>)</li>
+            </ul>
+            <table class="setup-page__ai-table">
+              <thead>
+                <tr>
+                  <th>What you want to do</th>
+                  <th>Classic scopes</th>
+                  <th>Fine-grained permission</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>View and score repos</td>
+                  <td><code>repo</code></td>
+                  <td>Metadata: Read-only</td>
+                </tr>
+                <tr>
+                  <td>Change visibility</td>
+                  <td><code>repo</code></td>
+                  <td>Administration: Read/write</td>
+                </tr>
+                <tr>
+                  <td>Delete repos</td>
+                  <td><code>repo</code> + <code>delete_repo</code></td>
+                  <td>Administration: Read/write</td>
+                </tr>
+              </tbody>
+            </table>
+            Prefer a fine-grained token? <a class="setup-page__link" href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener noreferrer">Create one here</a>
+            with <strong>Repository access: All repositories</strong> and the permissions from the table.
+            Note that <code>delete_repo</code> is not included in classic <code>repo</code>; it must be checked separately.
           </li>
           <li>
             Add your token to <code>.env</code>:
@@ -73,7 +112,7 @@ type StatusState = 'loading' | 'ok' | 'error' | 'unknown';
           </li>
           <li>Restart the local server: <code>npm run dev</code></li>
           <li>
-            <strong>Optional — Enable AI analysis.</strong>
+            <strong>Optional: Enable AI analysis.</strong>
             Set <code>AI_PROVIDER</code> in <code>.env</code> to one of:
             <table class="setup-page__ai-table">
               <thead>
@@ -97,7 +136,7 @@ type StatusState = 'loading' | 'ok' | 'error' | 'unknown';
                 <tr>
                   <td><code>ollama</code></td>
                   <td>Ollama (local, free)</td>
-                  <td>None — runs on your machine</td>
+                  <td>None (runs on your machine)</td>
                 </tr>
                 <tr>
                   <td><code>mock</code></td>
@@ -179,6 +218,25 @@ ANTHROPIC_API_KEY=your_key_here</pre>
       gap: var(--space-5);
       padding-left: var(--space-5);
     }
+    .setup-page__substeps {
+      margin: var(--space-2) 0 var(--space-3);
+      padding-left: var(--space-5);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-1);
+      font-size: var(--font-size-sm);
+    }
+    .setup-page__substeps li {
+      font-size: var(--font-size-sm);
+    }
+    .setup-page__link {
+      color: var(--color-primary);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    .setup-page__link:hover {
+      color: var(--color-blue-300);
+    }
     .setup-page__steps li {
       font-size: var(--font-size-base);
       color: var(--text-secondary);
@@ -252,8 +310,8 @@ export class SetupComponent implements OnInit {
   readonly aiStatusText = computed(() => {
     const ai = this.aiProvider();
     if (!ai) return 'Checking…';
-    if (ai.provider === 'none') return 'Disabled — set AI_PROVIDER in .env to enable (optional)';
-    if (!ai.configured) return `${ai.provider} selected but API key missing — add key to .env`;
+    if (ai.provider === 'none') return 'Disabled. Set AI_PROVIDER in .env to enable (optional)';
+    if (!ai.configured) return `${ai.provider} selected but API key missing. Add key to .env`;
     if (ai.provider === 'mock') return 'Mock provider active (no API key needed)';
     return `${ai.provider} configured`;
   });
@@ -262,9 +320,9 @@ export class SetupComponent implements OnInit {
     const state = this.tokenState();
     const s = this.status();
     if (state === 'loading') return 'Checking…';
-    if (state === 'error')   return 'Backend offline — is npm run dev running?';
-    if (!s?.tokenPresent)    return 'Not found — add GITHUB_TOKEN to .env';
-    if (!s?.tokenValid)      return 'Invalid or expired — check your token in .env';
+    if (state === 'error')   return 'Backend offline. Is npm run dev running?';
+    if (!s?.tokenPresent)    return 'Not found. Add GITHUB_TOKEN to .env';
+    if (!s?.tokenValid)      return 'Invalid or expired. Check your token in .env';
     return 'Connected';
   });
 

@@ -35,7 +35,7 @@ function buildPrompt(repos) {
 Analyse each repository and return a JSON object with a "results" array. Each item must have:
 ${RESULT_SHAPE}
 
-Be honest but constructive. These are personal repos — not commercial products.
+Be honest but constructive. These are personal repos, not commercial products.
 
 Repositories:
 ${JSON.stringify(toAiSafePayload(repos), null, 2)}`;

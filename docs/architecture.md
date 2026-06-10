@@ -1,13 +1,13 @@
 # Architecture
 
-CodeShelf is two small apps run together: an Angular frontend and a thin Express backend. The backend exists for exactly one reason — to keep the GitHub token and AI API keys out of the browser.
+CodeShelf is two small apps run together: an Angular frontend and a thin Express backend. The backend exists for exactly one reason: to keep the GitHub token and AI API keys out of the browser.
 
 ```
 GitHub API
    │  (token attached server-side only)
    ▼
 Express backend  (http://127.0.0.1:3000)
-   │  whitelist sanitizer — raw GitHub objects never leave the backend
+   │  whitelist sanitizer: raw GitHub objects never leave the backend
    ▼
 Angular frontend (http://localhost:4200)
    │  signals + pure scoring functions
@@ -17,7 +17,7 @@ Repo cards, scores, suggestion badges, action flows
 
 - The frontend never calls GitHub directly and never sees the token.
 - There is no database and no browser storage. All state is in-memory per session.
-- Everything runs on localhost. Do not deploy this publicly — see [security.md](security.md).
+- Everything runs on localhost. Do not deploy this publicly; see [security.md](security.md).
 
 ---
 
@@ -41,7 +41,7 @@ codeshelf/
 │       ├── server.js         binds 127.0.0.1, CORS locked to localhost origins
 │       ├── config/env.js     loads .env from the repo root
 │       ├── routes/           health, github, ai
-│       ├── services/         github.service.js — token, pagination, GitHub calls
+│       ├── services/         github.service.js: token, pagination, GitHub calls
 │       ├── utils/sanitize.js whitelist-only field mapping
 │       ├── middleware/       error handler ({ success: false, message })
 │       └── ai/               provider adapters: mock, openai, anthropic, ollama
@@ -50,7 +50,7 @@ codeshelf/
 └── package.json              npm run dev starts both servers via concurrently
 ```
 
-The backend is plain JavaScript (ESM) with no build step — `node --watch src/server.js`. The frontend is a standard Angular CLI app.
+The backend is plain JavaScript (ESM) with no build step; it runs via `node --watch src/server.js`. The frontend is a standard Angular CLI app.
 
 ---
 
@@ -62,7 +62,7 @@ All configuration lives in a single `.env` at the repo root. See [.env.example](
 |---|---|---|
 | `GITHUB_TOKEN` | Yes | GitHub Personal Access Token. Server-side only. |
 | `PORT` | No (default 3000) | Backend port. |
-| `ALLOWED_ORIGIN` | No (default `http://localhost:4200`) | CORS origin for the Angular dev server. Must be a localhost origin — non-localhost values are rejected and the default is used. |
+| `ALLOWED_ORIGIN` | No (default `http://localhost:4200`) | CORS origin for the Angular dev server. Must be a localhost origin; non-localhost values are rejected and the default is used. |
 | `AI_PROVIDER` | No (default disabled) | `openai`, `anthropic`, `ollama`, `mock`, or `none`. Unset, `none`, or any unrecognised value disables AI entirely. |
 | `OPENAI_API_KEY` | Only if `AI_PROVIDER=openai` | |
 | `ANTHROPIC_API_KEY` | Only if `AI_PROVIDER=anthropic` | |
@@ -73,16 +73,16 @@ All configuration lives in a single `.env` at the repo root. See [.env.example](
 
 ## Backend API
 
-All responses are JSON. Errors use a consistent envelope: `{ "success": false, "message": "..." }` with an appropriate HTTP status. Error messages are hand-written and sanitized — raw GitHub error objects, headers, and the token never appear in any response.
+All responses are JSON. Errors use a consistent envelope: `{ "success": false, "message": "..." }` with an appropriate HTTP status. Error messages are hand-written and sanitized; raw GitHub error objects, headers, and the token never appear in any response.
 
 ### Read endpoints
 
 | Endpoint | Returns |
 |---|---|
 | `GET /api/health` | `{ status: "ok", timestamp }` |
-| `GET /api/github/status` | `{ tokenPresent, tokenValid, rateLimitRemaining, rateLimitReset, scopes }` — never the token value |
+| `GET /api/github/status` | `{ tokenPresent, tokenValid, rateLimitRemaining, rateLimitReset, scopes }`, never the token value |
 | `GET /api/github/me` | `{ login, name, avatarUrl, profileUrl }` |
-| `GET /api/github/repos` | `SafeGitHubRepo[]` — all repos via paginated `GET /user/repos` |
+| `GET /api/github/repos` | `SafeGitHubRepo[]`, all repos via paginated `GET /user/repos` |
 | `GET /api/ai/status` | `{ provider, configured }` |
 
 ### Write endpoints
@@ -102,13 +102,13 @@ Both return `{ results: [{ fullName, success, message?, ...}] }`. The delete loo
 |---|---|---|
 | `POST /api/ai/analyse` | `{ repos: SafeGitHubRepo[] }` | Returns `{ results: RepoAiResult[] }`. Returns **503** when AI is disabled. |
 
-**AI boundary (enforced in backend code):** before any provider is called, the backend filters the submitted repos to `private === false`. Every provider then strips repos down to a single shared AI-safe field subset (`toAiSafePayload()` in [backend/src/ai/shared.js](../backend/src/ai/shared.js) — name, description, language, topics, stars, forks, update date, fork/archived flags, license presence). AI never receives the GitHub token, `.env` values, or private repo data, and has no path to any write endpoint.
+**AI boundary (enforced in backend code):** before any provider is called, the backend filters the submitted repos to `private === false`. Every provider then strips repos down to a single shared AI-safe field subset (`toAiSafePayload()` in [backend/src/ai/shared.js](../backend/src/ai/shared.js): name, description, language, topics, stars, forks, update date, fork/archived flags, license presence). AI never receives the GitHub token, `.env` values, or private repo data, and has no path to any write endpoint.
 
 ---
 
 ## Data Model
 
-`SafeGitHubRepo` is the only repo shape the frontend ever sees. It is produced by a whitelist sanitizer ([backend/src/utils/sanitize.js](../backend/src/utils/sanitize.js)) — fields not on this list never reach the browser:
+`SafeGitHubRepo` is the only repo shape the frontend ever sees. It is produced by a whitelist sanitizer ([backend/src/utils/sanitize.js](../backend/src/utils/sanitize.js)); fields not on this list never reach the browser:
 
 ```ts
 interface SafeGitHubRepo {
@@ -144,7 +144,7 @@ interface SafeGitHubRepo {
 ## Frontend State Model
 
 - All state is Angular **signals**; components use `OnPush` change detection and the modern control-flow syntax (`@if`/`@for`).
-- The repo list is the single source of truth. Public/private sections, stats, and filtered views are **derived** via `computed()` — never stored separately.
+- The repo list is the single source of truth. Public/private sections, stats, and filtered views are **derived** via `computed()`, never stored separately.
 - Scoring is pure: `scoreRepo(repo, ownerLogin)` in [core/utils/repo-score.utils.ts](../frontend/src/app/core/utils/repo-score.utils.ts) classifies the repo first, then applies a type-specific scorer. See [scoring.md](scoring.md).
 - Selection for visibility actions and selection for deletion are **separate sets**. The delete selection only becomes available behind a session-only safety toggle that resets on reload, and protected repos (your profile repo) cannot be marked at all.
 - Action flows are state machines: `idle → warning → executing → results` (visibility) and `idle → confirming → executing → results` (deletion). The warning/confirmation screen can never be skipped.
@@ -155,5 +155,5 @@ interface SafeGitHubRepo {
 
 - **Thin backend on purpose.** No sessions, no accounts, no database, no ORM. It is a secrets boundary, not a product backend. Resist abstracting it.
 - **Local-first, read-mostly.** Write actions (visibility, deletion) exist but every one requires manual selection plus an explicit confirmation screen. AI is advisory only.
-- **Adapter pattern for AI.** Providers implement one method, `analyzeRepos(repos)`, and are selected by `AI_PROVIDER`. Adding a provider means adding one file — the boundary filter and routes don't change.
+- **Adapter pattern for AI.** Providers implement one method, `analyzeRepos(repos)`, and are selected by `AI_PROVIDER`. Adding a provider means adding one file; the boundary filter and routes don't change.
 - **Styling via design tokens.** All component styles consume CSS custom properties from [frontend/src/styles/tokens.css](../frontend/src/styles/tokens.css). Don't hardcode colors or spacing.

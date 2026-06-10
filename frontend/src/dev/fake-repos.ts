@@ -1,5 +1,5 @@
 /**
- * Dev-only fixture. Not imported by the app — there is no runtime demo mode.
+ * Dev-only fixture. Not imported by the app; there is no runtime demo mode.
  * Kept for UI development and screenshot capture without a real GitHub account.
  */
 import { SafeGitHubRepo } from '../app/core/models/github-repo.model';
@@ -12,7 +12,7 @@ export const FAKE_REPOS: SafeGitHubRepo[] = [
     id: 1,
     name: 'portfolio-site',
     fullName: 'demo/portfolio-site',
-    description: 'My personal developer portfolio — built with Angular and deployed on Vercel.',
+    description: 'My personal developer portfolio, built with Angular and deployed on Vercel.',
     htmlUrl: 'https://github.com/demo/portfolio-site',
     private: false,
     fork: false,
@@ -116,7 +116,7 @@ export const FAKE_REPOS: SafeGitHubRepo[] = [
     id: 5,
     name: 'react-dashboard-fork',
     fullName: 'demo/react-dashboard-fork',
-    description: 'Forked from someone else\'s dashboard — adapted for my use.',
+    description: 'Forked from someone else\'s dashboard, adapted for my use.',
     htmlUrl: 'https://github.com/demo/react-dashboard-fork',
     private: false,
     fork: true,
@@ -168,7 +168,7 @@ export const FAKE_REPOS: SafeGitHubRepo[] = [
     id: 7,
     name: 'client-project-alpha',
     fullName: 'demo/client-project-alpha',
-    description: 'Private client work — NDA applies.',
+    description: 'Private client work. NDA applies.',
     htmlUrl: 'https://github.com/demo/client-project-alpha',
     private: true,
     fork: false,

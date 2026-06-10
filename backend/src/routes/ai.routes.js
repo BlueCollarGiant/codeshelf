@@ -47,7 +47,7 @@ router.post('/analyse', async (req, res, next) => {
       return res.status(503).json({ success: false, message: 'AI analysis is disabled. Set AI_PROVIDER in .env to enable it.' });
     }
 
-    // Mandatory AI boundary — private repos never reach any external provider.
+    // Mandatory AI boundary: private repos never reach any external provider.
     // Enforced here in backend code, not just UI.
     const publicOnly = repos.filter(r => r.private === false);
 

@@ -57,7 +57,7 @@ import { SafeGitHubRepo } from '../../../core/models/github-repo.model';
 
           <p class="warning-disclaimer">
             CodeShelf is not responsible for any resulting loss of data, exposure of sensitive information,
-            or access changes. All actions are irreversible through this tool — changes must be undone manually on GitHub.
+            or access changes. All actions are irreversible through this tool; changes must be undone manually on GitHub.
           </p>
         </div>
 
@@ -66,7 +66,7 @@ import { SafeGitHubRepo } from '../../../core/models/github-repo.model';
           <button mat-flat-button
             [color]="action() === 'public' ? 'warn' : 'primary'"
             (click)="confirm.emit()">
-            Confirm — Make {{ repos().length }} {{ repos().length === 1 ? 'Repo' : 'Repos' }} {{ action() | titlecase }}
+            Confirm: Make {{ repos().length }} {{ repos().length === 1 ? 'Repo' : 'Repos' }} {{ action() | titlecase }}
           </button>
         </div>
       </div>

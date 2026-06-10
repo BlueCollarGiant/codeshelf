@@ -5,7 +5,7 @@ import { Component, ChangeDetectionStrategy } from '@angular/core';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <footer class="app-footer">
-      <span class="app-footer__text">CodeShelf — localhost only</span>
+      <span class="app-footer__text">CodeShelf · localhost only</span>
     </footer>
   `,
   styles: [`

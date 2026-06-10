@@ -35,6 +35,8 @@ Committed files
 
 Prefer a fine-grained Personal Access Token.
 
+Token creation pages: [classic tokens](https://github.com/settings/tokens) (the [pre-scoped link](https://github.com/settings/tokens/new?description=CodeShelf&scopes=repo,delete_repo) checks `repo` + `delete_repo` for you) and [fine-grained tokens](https://github.com/settings/personal-access-tokens/new). The README has the full click-by-click path.
+
 | Need | Fine-grained PAT | Classic PAT |
 |---|---|---|
 | Read repository metadata | Metadata read-only | `repo` fallback |
@@ -55,7 +57,7 @@ notifications
 
 ## AI Boundary
 
-- AI is optional and disabled by default — `AI_PROVIDER` unset or `none` disables it entirely. The mock provider runs only when explicitly set to `mock`.
+- AI is optional and disabled by default: `AI_PROVIDER` unset or `none` disables it entirely. The mock provider runs only when explicitly set to `mock`.
 - AI receives public repository metadata only.
 - Private repos are filtered in backend code before any AI provider is called.
 - AI never receives the GitHub token or `.env` values.

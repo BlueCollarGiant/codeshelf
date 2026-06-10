@@ -9,7 +9,7 @@ import aiRoutes from './routes/ai.routes.js';
 const app = express();
 
 // CORS stays localhost-only. ALLOWED_ORIGIN exists to support a non-default
-// frontend port — non-localhost values are rejected and the default is used.
+// frontend port; non-localhost values are rejected and the default is used.
 const DEFAULT_ORIGIN = 'http://localhost:4200';
 const requestedOrigin = process.env.ALLOWED_ORIGIN || DEFAULT_ORIGIN;
 const isLocalhostOrigin = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(requestedOrigin);

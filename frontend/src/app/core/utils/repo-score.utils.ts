@@ -16,7 +16,7 @@ function ageMs(dateStr: string): number {
 // ─── Score functions per type ────────────────────────────────────────────────
 
 function scoreProfileRepo(repo: SafeGitHubRepo): { portfolio: number; cleanup: number; completeness: number; activity: number } {
-  let portfolio = 40; // base — profile repos have inherent value
+  let portfolio = 40; // base: profile repos have inherent value
   if (repo.description) portfolio += 10;
   if (repo.topics.length > 0) portfolio += 15;
   if (ageMs(repo.updatedAt) < MONTHS_12) portfolio += 20;
@@ -33,7 +33,7 @@ function scoreProfileRepo(repo: SafeGitHubRepo): { portfolio: number; cleanup: n
 function scoreConfigRepo(repo: SafeGitHubRepo): { portfolio: number; cleanup: number; completeness: number; activity: number } {
   return {
     portfolio: repo.description ? 40 : 20,
-    cleanup: 0,   // config repos are intentional — never cleanup candidates
+    cleanup: 0,   // config repos are intentional, never cleanup candidates
     completeness: repo.description ? 50 : 25,
     activity: ageMs(repo.updatedAt) < MONTHS_12 ? 40 : 10,
   };
@@ -96,7 +96,7 @@ function scoreStandardRepo(repo: SafeGitHubRepo): { portfolio: number; cleanup: 
 function buildSuggestions(repo: SafeGitHubRepo, classification: RepoClassification): RepoSuggestion[] {
   const { type, protected: isProtected } = classification;
 
-  // Profile repo — special rules only
+  // Profile repo: special rules only
   if (type === 'profile_repo') {
     const suggestions: RepoSuggestion[] = [
       { type: 'profile_repo', label: 'Profile repo', severity: 'info', reason: 'This is your GitHub profile README repo. It should not be deleted.' },
@@ -110,10 +110,10 @@ function buildSuggestions(repo: SafeGitHubRepo, classification: RepoClassificati
     return suggestions;
   }
 
-  // Config / dotfiles — never cleanup
+  // Config / dotfiles: never cleanup
   if (type === 'config_or_dotfiles') {
     const suggestions: RepoSuggestion[] = [
-      { type: 'config_repo', label: 'Config repo', severity: 'info', reason: 'Personal config or dotfiles repo — protected from cleanup suggestions.' },
+      { type: 'config_repo', label: 'Config repo', severity: 'info', reason: 'Personal config or dotfiles repo. Protected from cleanup suggestions.' },
     ];
     if (!repo.description) {
       suggestions.push({ type: 'needs_description', label: 'No description', severity: 'warning', reason: 'A short description helps others understand what your config covers.' });
@@ -124,7 +124,7 @@ function buildSuggestions(repo: SafeGitHubRepo, classification: RepoClassificati
   // Template repo
   if (type === 'template') {
     const suggestions: RepoSuggestion[] = [
-      { type: 'template_repo', label: 'Template', severity: 'info', reason: 'This is a template repo — scored for reusability, not cleanup.' },
+      { type: 'template_repo', label: 'Template', severity: 'info', reason: 'This is a template repo, scored for reusability, not cleanup.' },
     ];
     if (!repo.description) {
       suggestions.push({ type: 'needs_description', label: 'No description', severity: 'warning', reason: 'Templates without descriptions are hard for others to evaluate.' });
@@ -134,7 +134,7 @@ function buildSuggestions(repo: SafeGitHubRepo, classification: RepoClassificati
 
   // Archived
   if (repo.archived) {
-    return [{ type: 'already_archived', label: 'Archived', severity: 'info', reason: 'This repo is archived — read-only and already marked inactive.' }];
+    return [{ type: 'already_archived', label: 'Archived', severity: 'info', reason: 'This repo is archived. Read-only and already marked inactive.' }];
   }
 
   // Private
@@ -147,7 +147,7 @@ function buildSuggestions(repo: SafeGitHubRepo, classification: RepoClassificati
   const age = ageMs(repo.updatedAt);
 
   if (type === 'portfolio_project') {
-    suggestions.push({ type: 'portfolio_candidate', label: 'Portfolio', severity: 'success', reason: 'Public, active, described, with a language — good portfolio material.' });
+    suggestions.push({ type: 'portfolio_candidate', label: 'Portfolio', severity: 'success', reason: 'Public, active, described, with a language. Good portfolio material.' });
   }
 
   if (!repo.description) {

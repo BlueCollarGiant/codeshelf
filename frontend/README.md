@@ -1,6 +1,6 @@
 # CodeShelf Frontend
 
-The Angular 22 app for CodeShelf. Standalone components, signals, OnPush — no NgModules.
+The Angular 22 app for CodeShelf. Standalone components, signals, OnPush, no NgModules.
 
 Don't run this folder on its own during normal use. From the **repo root**:
 

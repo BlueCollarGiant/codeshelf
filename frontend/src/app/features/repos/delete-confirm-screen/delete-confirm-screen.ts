@@ -71,7 +71,7 @@ import { SafeGitHubRepo } from '../../../core/models/github-repo.model';
 
         <div class="delete-dialog__actions">
           <button mat-flat-button color="primary" class="cancel-btn" (click)="cancel.emit()">
-            Cancel — Keep All Repos
+            Cancel and Keep All Repos
           </button>
           <button mat-flat-button color="warn" class="confirm-btn" (click)="confirm.emit()">
             <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
