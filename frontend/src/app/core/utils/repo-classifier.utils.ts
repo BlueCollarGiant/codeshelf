@@ -15,6 +15,7 @@ const LABELS: Record<RepoType, { label: string; description: string }> = {
   template:          { label: 'Template',            description: 'A template repo for starting new projects.' },
   config_or_dotfiles:{ label: 'Config / dotfiles',  description: 'Personal config or environment setup files.' },
   archived:          { label: 'Archived',            description: 'Archived on GitHub. Read-only and inactive.' },
+  empty_repo:        { label: 'Empty repo',          description: 'Nothing has ever been pushed to this repo.' },
   unknown:           { label: 'Repo',                description: 'General repository.' },
 };
 
@@ -27,22 +28,27 @@ export function classifyRepo(repo: SafeGitHubRepo, ownerLogin: string): RepoClas
   };
 }
 
+function recencyMs(repo: SafeGitHubRepo): number {
+  return Date.now() - new Date(repo.pushedAt ?? repo.updatedAt).getTime();
+}
+
 function detectType(repo: SafeGitHubRepo, ownerLogin: string): RepoType {
-  // Profile repo: name exactly matches the owner's login
   if (repo.name.toLowerCase() === ownerLogin.toLowerCase()) {
     return 'profile_repo';
   }
 
   if (repo.archived) return 'archived';
 
+  // fork must come before empty_repo: forks share parent object storage and can show size=0
   if (repo.fork) return 'fork';
 
-  // Template repo
+  // empty_repo: nothing ever pushed (size=0 alone is insufficient; language guard protects single-file repos)
+  if (repo.size === 0 && repo.language === null) return 'empty_repo';
+
   if (repo.name.toLowerCase().includes('template') || repo.topics.includes('template')) {
     return 'template';
   }
 
-  // Config / dotfiles
   if (
     DOTFILE_NAMES.has(repo.name.toLowerCase()) ||
     repo.name.toLowerCase().startsWith('.') ||
@@ -51,27 +57,23 @@ function detectType(repo: SafeGitHubRepo, ownerLogin: string): RepoType {
     return 'config_or_dotfiles';
   }
 
-  const ageMs = Date.now() - new Date(repo.updatedAt).getTime();
+  const age = recencyMs(repo);
   const hasSignals = !!repo.description && !!repo.language;
   const hasActivity = repo.stargazersCount > 0 || repo.forksCount > 0;
 
-  // Portfolio project: public, described, active, has language
-  if (!repo.private && hasSignals && ageMs < MONTHS_12) {
+  if (!repo.private && hasSignals && age < MONTHS_12) {
     return 'portfolio_project';
   }
 
-  // Active project: recently touched but may lack description
-  if (ageMs < MONTHS_12 && (hasSignals || hasActivity)) {
+  if (age < MONTHS_12 && (hasSignals || hasActivity)) {
     return 'active_project';
   }
 
-  // Old learning repo: inactive, no signals, no activity
-  if (ageMs > MONTHS_24 && !hasActivity && !hasSignals) {
+  if (age > MONTHS_24 && !hasActivity && !hasSignals) {
     return 'old_learning_repo';
   }
 
-  // Experiment: recent-ish but no description or stars
-  if (ageMs < MONTHS_24 && !hasSignals && !hasActivity) {
+  if (age < MONTHS_24 && !hasSignals && !hasActivity) {
     return 'experiment';
   }
 

@@ -9,7 +9,8 @@ export type RepoSuggestionType =
   | 'profile_repo'
   | 'improve_readme'
   | 'config_repo'
-  | 'template_repo';
+  | 'template_repo'
+  | 'empty_repo';
 
 export type RepoSuggestionSeverity = 'info' | 'success' | 'warning' | 'danger';
 

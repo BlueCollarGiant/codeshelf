@@ -8,6 +8,7 @@ export type RepoType =
   | 'template'
   | 'config_or_dotfiles'
   | 'archived'
+  | 'empty_repo'
   | 'unknown';
 
 export interface RepoClassification {

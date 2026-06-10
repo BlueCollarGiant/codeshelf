@@ -78,7 +78,7 @@ import { RelativeDatePipe } from '../../pipes/relative-date.pipe';
           }
           <span class="repo-card__meta-item">Stars {{ repo().stargazersCount }}</span>
           <span class="repo-card__meta-item">Forks {{ repo().forksCount }}</span>
-          <span class="repo-card__meta-item">Updated {{ repo().updatedAt | relativeDate }}</span>
+          <span class="repo-card__meta-item">Updated {{ (repo().pushedAt ?? repo().updatedAt) | relativeDate }}</span>
         </div>
 
         @if (score(); as s) {
@@ -311,6 +311,7 @@ export class RepoCardComponent {
       archived:           'type--archived',
       old_learning_repo:  'type--old',
       experiment:         'type--experiment',
+      empty_repo:         'type--empty',
     };
     return accentTypes[type] ?? '';
   }

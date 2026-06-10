@@ -1,4 +1,4 @@
-const DAY_MS = 24 * 60 * 60 * 1000;
+export const DAY_MS = 24 * 60 * 60 * 1000;
 const MONTH_MS = 30 * DAY_MS;
 
 export const MONTHS_6  =  6 * MONTH_MS;

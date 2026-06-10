@@ -64,6 +64,10 @@ import { RouterLink } from '@angular/router';
             <span class="hiw-type-chip">Experiment</span>
             <p>Recent-ish but no description, no stars, no forks. Looks like a personal scratch project. No harsh penalties since you probably know what it is.</p>
           </div>
+          <div class="hiw-type-card hiw-type-card--old">
+            <span class="hiw-type-chip">Empty repo</span>
+            <p>Nothing has ever been pushed. Size is 0 and no language is detected. Gets the highest cleanup score and a danger badge. Forks are checked first, so a forked repo with shared storage is never mistaken for empty.</p>
+          </div>
         </div>
       </section>
 
@@ -120,20 +124,22 @@ import { RouterLink } from '@angular/router';
           <div class="hiw-factor hiw-factor--positive">
             <span class="hiw-factor__label">Raises the cleanup score</span>
             <ul class="hiw-factor__list">
-              <li>No description and no stars</li>
-              <li>Not updated in over 12 months with zero engagement</li>
-              <li>Is a fork</li>
-              <li>Is archived</li>
-              <li>No detected language</li>
+              <li><strong>Empty repo</strong> (nothing ever pushed): +45</li>
+              <li>Dead: no push in 2+ years, 0 stars, 0 forks: +30</li>
+              <li>Stale: no push in 1-2 years, 0 stars, 0 forks: +15</li>
+              <li>Fork never modified (no push after creation): +20</li>
+              <li>Fork with some changes: +10</li>
+              <li>No description: +10</li>
+              <li>No detected language: +5</li>
             </ul>
           </div>
           <div class="hiw-factor hiw-factor--negative">
             <span class="hiw-factor__label">Keeps the cleanup score low</span>
             <ul class="hiw-factor__list">
-              <li>Has a description</li>
+              <li>Pushed recently (dead/stale signals do not fire)</li>
               <li>Has stars or forks from others</li>
-              <li>Updated recently</li>
-              <li>Has a detected language</li>
+              <li>Has a description</li>
+              <li>Repo created within 90 days (grace period: dead/stale signals exempt)</li>
             </ul>
           </div>
         </div>
@@ -149,28 +155,32 @@ import { RouterLink } from '@angular/router';
           Activity Score
         </h2>
         <p class="hiw-section__intro">
-          A simple staleness signal based on when the repo was last updated.
+          A continuous staleness signal based on when the repo was last pushed. Uses exponential decay with a 180-day half-life: <code>round(100 x 0.5 ^ (days / 180))</code>. Scores fall smoothly instead of jumping between buckets. Archived repos are pinned to 0 (they cannot receive pushes by definition).
         </p>
         <div class="hiw-activity-table">
           <div class="hiw-activity-row">
-            <span class="hiw-activity-value hiw-activity-value--high">50</span>
-            <span class="hiw-activity-label">Updated within the last 6 months</span>
+            <span class="hiw-activity-value hiw-activity-value--high">~100</span>
+            <span class="hiw-activity-label">Pushed yesterday</span>
           </div>
           <div class="hiw-activity-row">
-            <span class="hiw-activity-value hiw-activity-value--med">30</span>
-            <span class="hiw-activity-label">Updated within the last 12 months</span>
+            <span class="hiw-activity-value hiw-activity-value--high">~71</span>
+            <span class="hiw-activity-label">Pushed 3 months ago</span>
           </div>
           <div class="hiw-activity-row">
-            <span class="hiw-activity-value hiw-activity-value--low">10</span>
-            <span class="hiw-activity-label">Updated within the last 2 years</span>
+            <span class="hiw-activity-value hiw-activity-value--med">50</span>
+            <span class="hiw-activity-label">Pushed 6 months ago (one half-life)</span>
           </div>
           <div class="hiw-activity-row">
-            <span class="hiw-activity-value hiw-activity-value--none">0</span>
-            <span class="hiw-activity-label">Not touched in over 2 years</span>
+            <span class="hiw-activity-value hiw-activity-value--low">25</span>
+            <span class="hiw-activity-label">Pushed 12 months ago</span>
+          </div>
+          <div class="hiw-activity-row">
+            <span class="hiw-activity-value hiw-activity-value--none">~6</span>
+            <span class="hiw-activity-label">Pushed 2 years ago</span>
           </div>
         </div>
         <p class="hiw-section__note">
-          A public repo with activity 0 and no stars is what triggers the <strong>Old &amp; quiet</strong> badge.
+          The score uses <strong>pushed date</strong> (code commits), not updated date (which also changes on non-code events like topic edits). A public repo with very low activity and no stars is what triggers the <strong>Old &amp; quiet</strong> badge.
         </p>
       </section>
 
@@ -252,6 +262,10 @@ import { RouterLink } from '@angular/router';
           <div class="hiw-badge-row">
             <span class="badge-pill badge-pill--warn">FORK</span>
             <p>A fork of someone else's repo. Fine to keep, but if you haven't added anything it may be noise.</p>
+          </div>
+          <div class="hiw-badge-row">
+            <span class="badge-pill badge-pill--danger">EMPTY REPO</span>
+            <p>Nothing has ever been pushed. Highest cleanup score. Consider deleting it.</p>
           </div>
           <div class="hiw-badge-row">
             <span class="badge-pill badge-pill--danger">OLD &amp; QUIET</span>
