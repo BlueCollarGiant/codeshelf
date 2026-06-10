@@ -60,6 +60,8 @@ notifications
 - AI is optional and disabled by default: `AI_PROVIDER` unset or `none` disables it entirely. The mock provider runs only when explicitly set to `mock`.
 - AI receives public repository metadata only.
 - Private repos are filtered in backend code before any AI provider is called.
+- The AI-safe field subset is: name, description, language, topics, stars, forks, pushed date, fork/archived flags, license presence, and repo type (validated server-side against the known type set; advisory prompt context only, not a security boundary).
+- Profile repo AI results have `suggestDeletion` and `suggestMakePrivate` force-cleared server-side, regardless of what the provider returns.
 - AI never receives the GitHub token or `.env` values.
 - AI never calls GitHub.
 - AI never selects repos or triggers write actions.

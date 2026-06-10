@@ -9,7 +9,7 @@ export function buildAiResultMap(
   for (const r of results) {
     const classification = scoreMap[r.repoId]?.classification;
     map[r.repoId] = classification?.protected
-      ? { ...r, suggestDeletion: false }
+      ? { ...r, suggestDeletion: false, suggestMakePrivate: false }
       : r;
   }
   return map;

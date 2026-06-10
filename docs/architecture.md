@@ -102,7 +102,7 @@ Both return `{ results: [{ fullName, success, message?, ...}] }`. The delete loo
 |---|---|---|
 | `POST /api/ai/analyse` | `{ repos: SafeGitHubRepo[] }` | Returns `{ results: RepoAiResult[] }`. Returns **503** when AI is disabled. |
 
-**AI boundary (enforced in backend code):** before any provider is called, the backend filters the submitted repos to `private === false`. Every provider then strips repos down to a single shared AI-safe field subset (`toAiSafePayload()` in [backend/src/ai/shared.js](../backend/src/ai/shared.js): name, description, language, topics, stars, forks, update date, fork/archived flags, license presence). AI never receives the GitHub token, `.env` values, or private repo data, and has no path to any write endpoint.
+**AI boundary (enforced in backend code):** before any provider is called, the backend filters the submitted repos to `private === false`. Every provider then strips repos down to a single shared AI-safe field subset (`toAiSafePayload()` in [backend/src/ai/shared.js](../backend/src/ai/shared.js): name, description, language, topics, stars, forks, pushed date, fork/archived flags, license presence, and repo type (validated against the known type set; client-supplied for prompt context only, not a security boundary)). Profile repo results have `suggestDeletion` and `suggestMakePrivate` force-cleared server-side in `normalizeResults()`, regardless of what the model returns. AI never receives the GitHub token, `.env` values, or private repo data, and has no path to any write endpoint.
 
 ---
 

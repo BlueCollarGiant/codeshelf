@@ -569,9 +569,14 @@ export class ReposComponent implements OnInit {
       : allPublic;
     if (toAnalyse.length === 0) return;
     this.aiState.set('loading');
+    const scores = this.scoreMap();
     try {
-      const { results } = await this.aiApi.analyzeRepos(toAnalyse);
-      this.aiResults.set(buildAiResultMap(results, this.scoreMap()));
+      const reposWithType = toAnalyse.map(r => ({
+        ...r,
+        repoType: scores[r.id]?.classification.type ?? 'unknown' as const,
+      }));
+      const { results } = await this.aiApi.analyzeRepos(reposWithType);
+      this.aiResults.set(buildAiResultMap(results, scores));
       this.aiState.set('done');
     } catch {
       this.aiState.set('error');

@@ -1,4 +1,4 @@
-import { toAiSafePayload, normalizeResults, RESULT_SHAPE } from './shared.js';
+import { toAiSafePayload, normalizeResults, RESULT_SHAPE, TYPE_RULES } from './shared.js';
 
 const OPENAI_API = 'https://api.openai.com/v1/chat/completions';
 
@@ -34,6 +34,8 @@ function buildPrompt(repos) {
 
 Analyse each repository and return a JSON object with a "results" array. Each item must have:
 ${RESULT_SHAPE}
+
+${TYPE_RULES}
 
 Be honest but constructive. These are personal repos, not commercial products.
 

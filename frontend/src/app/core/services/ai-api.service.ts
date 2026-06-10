@@ -3,12 +3,15 @@ import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { SafeGitHubRepo } from '../models/github-repo.model';
 import { RepoAiResult } from '../models/repo-ai-result.model';
+import { RepoType } from '../models/repo-type.model';
 import { API_BASE as API } from '../api.constants';
 
 export interface AiProviderStatus {
   provider: string;
   configured: boolean;
 }
+
+export type RepoWithType = SafeGitHubRepo & { repoType: RepoType };
 
 @Injectable({ providedIn: 'root' })
 export class AiApiService {
@@ -18,7 +21,7 @@ export class AiApiService {
     return firstValueFrom(this.http.get<AiProviderStatus>(`${API}/ai/status`));
   }
 
-  analyzeRepos(repos: SafeGitHubRepo[]): Promise<{ results: RepoAiResult[] }> {
+  analyzeRepos(repos: RepoWithType[]): Promise<{ results: RepoAiResult[] }> {
     return firstValueFrom(
       this.http.post<{ results: RepoAiResult[] }>(`${API}/ai/analyse`, { repos })
     );

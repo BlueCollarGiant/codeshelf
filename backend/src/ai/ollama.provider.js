@@ -1,4 +1,4 @@
-import { toAiSafePayload, normalizeResults, RESULT_SHAPE } from './shared.js';
+import { toAiSafePayload, normalizeResults, RESULT_SHAPE, TYPE_RULES } from './shared.js';
 
 const OLLAMA_API = process.env.OLLAMA_URL || 'http://localhost:11434';
 const OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'llama3';
@@ -23,6 +23,8 @@ export class OllamaProvider {
 function buildPrompt(repos) {
   return `Analyse these GitHub repositories and return ONLY a JSON object with a "results" array. Each item must have:
 ${RESULT_SHAPE}
+
+${TYPE_RULES}
 
 Repositories:
 ${JSON.stringify(toAiSafePayload(repos))}`;

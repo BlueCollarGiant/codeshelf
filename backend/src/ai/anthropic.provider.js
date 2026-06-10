@@ -1,4 +1,4 @@
-import { toAiSafePayload, normalizeResults, RESULT_SHAPE } from './shared.js';
+import { toAiSafePayload, normalizeResults, RESULT_SHAPE, TYPE_RULES } from './shared.js';
 
 const ANTHROPIC_API = 'https://api.anthropic.com/v1/messages';
 
@@ -38,6 +38,8 @@ function buildPrompt(repos) {
 
 Analyse each repository and return ONLY a JSON object (no markdown, no prose) with a "results" array. Each item must have:
 ${RESULT_SHAPE}
+
+${TYPE_RULES}
 
 Be honest but constructive. These are personal repos, not commercial products.
 
