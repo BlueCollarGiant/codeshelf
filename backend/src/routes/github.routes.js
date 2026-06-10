@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { checkTokenStatus, getAuthenticatedUser, getAllRepos, setRepoVisibility, deleteRepo } from '../services/github.service.js';
+import { checkTokenStatus, getAuthenticatedUser, getAllRepos, setVisibilityForAll, deleteAll } from '../services/github.service.js';
 import { sanitizeRepo, sanitizeUser } from '../utils/sanitize.js';
 
 const router = Router();
@@ -51,17 +51,8 @@ router.post('/repos/visibility', async (req, res, next) => {
     }
   }
 
-  const results = [];
-  for (const { fullName, visibility } of repos) {
-    try {
-      await setRepoVisibility(fullName, visibility);
-      results.push({ fullName, visibility, success: true });
-    } catch (err) {
-      results.push({ fullName, visibility, success: false, message: err.message ?? 'Unknown error.' });
-    }
-  }
-
-  res.json({ success: true, results });
+  const results = await setVisibilityForAll(repos);
+  res.json({ results });
 });
 
 router.post('/repos/delete', async (req, res, next) => {
@@ -80,8 +71,6 @@ router.post('/repos/delete', async (req, res, next) => {
     }
   }
 
-  // Backend-side guard: the profile repo (name matches the owner's login) is
-  // never deleted, even if a request bypasses the UI's disabled checkbox.
   let ownerLogin = null;
   try {
     ownerLogin = (await getAuthenticatedUser()).login?.toLowerCase() ?? null;
@@ -89,23 +78,8 @@ router.post('/repos/delete', async (req, res, next) => {
     // Token problems surface per-repo below; the guard just can't apply.
   }
 
-  const results = [];
-  for (const { fullName } of repos) {
-    const repoName = fullName.split('/')[1]?.toLowerCase();
-    if (ownerLogin && repoName === ownerLogin) {
-      results.push({ fullName, success: false, status: 'failed', message: 'This is your GitHub profile repo. CodeShelf will not delete it.' });
-      continue;
-    }
-    try {
-      await deleteRepo(fullName);
-      results.push({ fullName, success: true, status: 'deleted' });
-    } catch (err) {
-      results.push({ fullName, success: false, status: 'failed', message: err.message ?? 'Unknown error.' });
-      if (err.status === 401) break;
-    }
-  }
-
-  res.json({ success: true, results });
+  const results = await deleteAll(repos, ownerLogin);
+  res.json({ results });
 });
 
 export default router;

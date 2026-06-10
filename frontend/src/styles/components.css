@@ -37,22 +37,6 @@
   color: var(--badge-archived-fg);
 }
 
-/* Suggestion badges */
-.badge--danger {
-  background: var(--color-danger-bg);
-  color: var(--color-danger-fg);
-}
-
-.badge--warning {
-  background: var(--color-warning-bg);
-  color: var(--color-warning-fg);
-}
-
-.badge--portfolio {
-  background: var(--color-portfolio-bg);
-  color: var(--color-portfolio-fg);
-}
-
 /* Stat chip */
 .chip {
   display: inline-flex;

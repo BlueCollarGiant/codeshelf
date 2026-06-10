@@ -94,7 +94,7 @@ Write routes require a custom header as a deliberate-action gate. Requests witho
 | `POST /api/github/repos/visibility` | `X-CodeShelf-Action: visibility` | `{ repos: [{ fullName, visibility: "public" \| "private" }] }` |
 | `POST /api/github/repos/delete` | `X-CodeShelf-Action: delete` | `{ repos: [{ fullName }] }` |
 
-Both return `{ success, results: [{ fullName, success, message? , ...}] }`. The delete loop stops early if GitHub rejects the token (401), and the backend refuses to delete the profile repo (name matches the owner's login) regardless of what the request contains.
+Both return `{ results: [{ fullName, success, message?, ...}] }`. The delete loop stops early if GitHub rejects the token (401), and the backend refuses to delete the profile repo (name matches the owner's login) regardless of what the request contains.
 
 ### AI endpoint
 

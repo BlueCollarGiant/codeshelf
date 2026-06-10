@@ -1,6 +1,5 @@
 import { Component, ChangeDetectionStrategy, input, output } from '@angular/core';
 import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatButtonModule } from '@angular/material/button';
 import { SafeGitHubRepo } from '../../../core/models/github-repo.model';
 import { RepoScore } from '../../../core/models/repo-score.model';
 import { RepoType } from '../../../core/models/repo-type.model';
@@ -10,7 +9,7 @@ import { RelativeDatePipe } from '../../pipes/relative-date.pipe';
 
 @Component({
   selector: 'app-repo-card',
-  imports: [MatCheckboxModule, MatButtonModule, SuggestionBadgeComponent, RelativeDatePipe],
+  imports: [MatCheckboxModule, SuggestionBadgeComponent, RelativeDatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <article class="repo-card" [class.repo-card--selected]="selected()" [class.repo-card--delete]="markedForDelete()">
@@ -67,7 +66,7 @@ import { RelativeDatePipe } from '../../pipes/relative-date.pipe';
 
         <div class="repo-card__meta">
           @if (score(); as s) {
-            <span class="repo-card__meta-item repo-card__meta-item--type" [class]="typeChipClass(s.classification.type)">
+            <span class="repo-card__meta-item repo-card__meta-item--type" [class]="typeChipClass(s.classification.type)" [title]="s.classification.description">
               {{ s.classification.label }}
             </span>
           }

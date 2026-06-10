@@ -110,3 +110,35 @@ export async function setRepoVisibility(fullName, visibility) {
 
   return true;
 }
+
+export async function setVisibilityForAll(repos) {
+  const results = [];
+  for (const { fullName, visibility } of repos) {
+    try {
+      await setRepoVisibility(fullName, visibility);
+      results.push({ fullName, visibility, success: true });
+    } catch (err) {
+      results.push({ fullName, visibility, success: false, message: err.message ?? 'Unknown error.' });
+    }
+  }
+  return results;
+}
+
+export async function deleteAll(repos, ownerLogin) {
+  const results = [];
+  for (const { fullName } of repos) {
+    const repoName = fullName.split('/')[1]?.toLowerCase();
+    if (ownerLogin && repoName === ownerLogin) {
+      results.push({ fullName, success: false, message: 'This is your GitHub profile repo. CodeShelf will not delete it.' });
+      continue;
+    }
+    try {
+      await deleteRepo(fullName);
+      results.push({ fullName, success: true });
+    } catch (err) {
+      results.push({ fullName, success: false, message: err.message ?? 'Unknown error.' });
+      if (err.status === 401) break;
+    }
+  }
+  return results;
+}

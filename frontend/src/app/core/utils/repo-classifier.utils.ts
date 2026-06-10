@@ -1,5 +1,6 @@
 import { SafeGitHubRepo } from '../models/github-repo.model';
 import { RepoClassification, RepoType } from '../models/repo-type.model';
+import { MONTHS_12, MONTHS_24 } from './time.constants';
 
 const DOTFILE_NAMES = new Set(['.dotfiles', 'dotfiles', '.config', 'config', 'setup', 'mackup']);
 const CONFIG_TOPICS = new Set(['dotfiles', 'config', 'setup', 'macos', 'linux', 'windows', 'shell', 'zsh', 'bash', 'powershell']);
@@ -51,8 +52,6 @@ function detectType(repo: SafeGitHubRepo, ownerLogin: string): RepoType {
   }
 
   const ageMs = Date.now() - new Date(repo.updatedAt).getTime();
-  const MONTHS_12 = 12 * 30 * 24 * 60 * 60 * 1000;
-  const MONTHS_24 = 24 * 30 * 24 * 60 * 60 * 1000;
   const hasSignals = !!repo.description && !!repo.language;
   const hasActivity = repo.stargazersCount > 0 || repo.forksCount > 0;
 

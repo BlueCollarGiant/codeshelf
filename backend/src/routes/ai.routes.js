@@ -6,18 +6,24 @@ import { OllamaProvider } from '../ai/ollama.provider.js';
 
 const router = Router();
 
-function getProvider() {
+const KNOWN_PROVIDERS = new Set(['openai', 'anthropic', 'ollama', 'mock']);
+
+function resolveProviderName() {
   const p = (process.env.AI_PROVIDER || 'none').toLowerCase();
+  return KNOWN_PROVIDERS.has(p) ? p : 'none';
+}
+
+function getProvider() {
+  const p = resolveProviderName();
   if (p === 'openai')    return new OpenAiProvider();
   if (p === 'anthropic') return new AnthropicProvider();
   if (p === 'ollama')    return new OllamaProvider();
   if (p === 'mock')      return new MockLlmProvider();
-  // 'none', unset, or unrecognised — AI is disabled. Mock only runs when explicitly chosen.
   return null;
 }
 
 function getProviderStatus() {
-  const p = (process.env.AI_PROVIDER || 'none').toLowerCase();
+  const p = resolveProviderName();
   if (p === 'openai')    return { provider: 'openai',    configured: !!process.env.OPENAI_API_KEY };
   if (p === 'anthropic') return { provider: 'anthropic', configured: !!process.env.ANTHROPIC_API_KEY };
   if (p === 'ollama')    return { provider: 'ollama',    configured: true };

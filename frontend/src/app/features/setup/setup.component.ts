@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, signal, inject, OnInit } from '@angular/core';
+import { Component, ChangeDetectionStrategy, signal, computed, inject, OnInit } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
 import { RouterLink } from '@angular/router';
@@ -240,25 +240,25 @@ export class SetupComponent implements OnInit {
   readonly aiProvider  = signal<AiProviderStatus | null>(null);
   readonly tokenState  = signal<StatusState>('loading');
 
-  readonly tokenIndicatorClass = () => `status-indicator status-indicator--${this.tokenState()}`;
+  readonly tokenIndicatorClass = computed(() => `status-indicator status-indicator--${this.tokenState()}`);
 
-  readonly aiIndicatorClass = () => {
+  readonly aiIndicatorClass = computed(() => {
     const ai = this.aiProvider();
     if (!ai) return 'status-indicator status-indicator--loading';
     if (ai.provider === 'none') return 'status-indicator status-indicator--unknown';
     return ai.configured ? 'status-indicator status-indicator--ok' : 'status-indicator status-indicator--error';
-  };
+  });
 
-  readonly aiStatusText = () => {
+  readonly aiStatusText = computed(() => {
     const ai = this.aiProvider();
     if (!ai) return 'Checking…';
     if (ai.provider === 'none') return 'Disabled — set AI_PROVIDER in .env to enable (optional)';
     if (!ai.configured) return `${ai.provider} selected but API key missing — add key to .env`;
     if (ai.provider === 'mock') return 'Mock provider active (no API key needed)';
     return `${ai.provider} configured`;
-  };
+  });
 
-  readonly tokenStatusText = () => {
+  readonly tokenStatusText = computed(() => {
     const state = this.tokenState();
     const s = this.status();
     if (state === 'loading') return 'Checking…';
@@ -266,7 +266,7 @@ export class SetupComponent implements OnInit {
     if (!s?.tokenPresent)    return 'Not found — add GITHUB_TOKEN to .env';
     if (!s?.tokenValid)      return 'Invalid or expired — check your token in .env';
     return 'Connected';
-  };
+  });
 
   async ngOnInit(): Promise<void> {
     // Fetch token status and AI status in parallel

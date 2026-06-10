@@ -2,11 +2,12 @@ import { SafeGitHubRepo } from '../models/github-repo.model';
 import { RepoScore } from '../models/repo-score.model';
 import { RepoSuggestion } from '../models/repo-suggestion.model';
 import { RepoClassification } from '../models/repo-type.model';
+import { DashboardStats } from '../models/dashboard-stats.model';
 import { classifyRepo } from './repo-classifier.utils';
+import { MONTHS_6, MONTHS_12, MONTHS_24 } from './time.constants';
 
-const MONTHS_6  =  6 * 30 * 24 * 60 * 60 * 1000;
-const MONTHS_12 = 12 * 30 * 24 * 60 * 60 * 1000;
-const MONTHS_24 = 24 * 30 * 24 * 60 * 60 * 1000;
+export const PORTFOLIO_THRESHOLD = 60;
+export const CLEANUP_THRESHOLD   = 40;
 
 function ageMs(dateStr: string): number {
   return Date.now() - new Date(dateStr).getTime();
@@ -145,11 +146,7 @@ function buildSuggestions(repo: SafeGitHubRepo, classification: RepoClassificati
   const suggestions: RepoSuggestion[] = [];
   const age = ageMs(repo.updatedAt);
 
-  const isPortfolioCandidate =
-    !repo.private && !repo.archived && !repo.fork &&
-    !!repo.description && !!repo.language && age < MONTHS_12;
-
-  if (isPortfolioCandidate) {
+  if (type === 'portfolio_project') {
     suggestions.push({ type: 'portfolio_candidate', label: 'Portfolio', severity: 'success', reason: 'Public, active, described, with a language — good portfolio material.' });
   }
 
@@ -198,5 +195,17 @@ export function scoreRepo(repo: SafeGitHubRepo, ownerLogin: string = ''): RepoSc
     activityScore:    scores.activity,
     completenessScore: scores.completeness,
     suggestions:      buildSuggestions(repo, classification),
+  };
+}
+
+export function computeDashboardStats(repos: SafeGitHubRepo[], scoreMap: Record<number, RepoScore>): DashboardStats {
+  return {
+    total:               repos.length,
+    public:              repos.filter(r => !r.private).length,
+    private:             repos.filter(r => r.private).length,
+    archived:            repos.filter(r => r.archived).length,
+    forks:               repos.filter(r => r.fork).length,
+    portfolioCandidates: Object.values(scoreMap).filter(s => s.portfolioScore >= PORTFOLIO_THRESHOLD).length,
+    cleanupCandidates:   Object.values(scoreMap).filter(s => s.cleanupScore >= CLEANUP_THRESHOLD).length,
   };
 }

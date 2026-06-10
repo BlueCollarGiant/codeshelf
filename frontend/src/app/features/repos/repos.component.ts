@@ -8,7 +8,8 @@ import { RepoScore } from '../../core/models/repo-score.model';
 import { DashboardStats } from '../../core/models/dashboard-stats.model';
 import { RepoSuggestionType, SuggestionFilter } from '../../core/models/repo-suggestion.model';
 import { VisibilityAction, VisibilityResult, DeleteResult } from '../../core/models/action-result.model';
-import { scoreRepo } from '../../core/utils/repo-score.utils';
+import { scoreRepo, computeDashboardStats } from '../../core/utils/repo-score.utils';
+import { buildAiResultMap } from '../../core/utils/repo-ai.utils';
 import { RepoApiService } from '../../core/services/repo-api.service';
 import { AiApiService } from '../../core/services/ai-api.service';
 import { RepoActionsService } from '../../core/services/repo-actions.service';
@@ -447,24 +448,9 @@ export class ReposComponent implements OnInit {
     return map;
   });
 
-  readonly stats = computed<DashboardStats>(() => {
-    const all = this.repos();
-    const scores = this.scoreMap();
-    return {
-      total:               all.length,
-      public:              all.filter(r => !r.private).length,
-      private:             all.filter(r => r.private).length,
-      archived:            all.filter(r => r.archived).length,
-      forks:               all.filter(r => r.fork).length,
-      portfolioCandidates: Object.values(scores).filter(s => s.portfolioScore >= 60).length,
-      cleanupCandidates:   Object.values(scores).filter(s => s.cleanupScore >= 40).length,
-      missingDescription:  all.filter(r => !r.description).length,
-      oldInactive: all.filter(r => {
-        const age = Date.now() - new Date(r.updatedAt).getTime();
-        return age > 12 * 30 * 24 * 60 * 60 * 1000 && r.stargazersCount === 0;
-      }).length,
-    };
-  });
+  readonly stats = computed<DashboardStats>(() =>
+    computeDashboardStats(this.repos(), this.scoreMap())
+  );
 
   readonly selectedRepos = computed<SafeGitHubRepo[]>(() =>
     this.repos().filter(r => this.selectedIds().has(r.id))
@@ -566,15 +552,12 @@ export class ReposComponent implements OnInit {
     });
   }
 
-  onDeleteToggleChange(enabled: boolean): void {
+  onDeleteToggleInput(event: Event): void {
+    const enabled = (event.target as HTMLInputElement).checked;
     this.deleteToggleEnabled.set(enabled);
     if (!enabled) {
       this.deleteSelectedIds.set(new Set());
     }
-  }
-
-  onDeleteToggleInput(event: Event): void {
-    this.onDeleteToggleChange((event.target as HTMLInputElement).checked);
   }
 
   async analysePublicRepos(): Promise<void> {
@@ -588,16 +571,7 @@ export class ReposComponent implements OnInit {
     this.aiState.set('loading');
     try {
       const { results } = await this.aiApi.analyzeRepos(toAnalyse);
-      const scores = this.scoreMap();
-      const map: Record<number, RepoAiResult> = {};
-      for (const r of results) {
-        // Suppress delete suggestion for protected repos (classification.protected — the profile repo)
-        const classification = scores[r.repoId]?.classification;
-        map[r.repoId] = classification?.protected
-          ? { ...r, suggestDeletion: false }
-          : r;
-      }
-      this.aiResults.set(map);
+      this.aiResults.set(buildAiResultMap(results, this.scoreMap()));
       this.aiState.set('done');
     } catch {
       this.aiState.set('error');

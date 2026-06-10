@@ -6,6 +6,4 @@ export interface DashboardStats {
   forks: number;
   portfolioCandidates: number;
   cleanupCandidates: number;
-  missingDescription: number;
-  oldInactive: number;
 }
