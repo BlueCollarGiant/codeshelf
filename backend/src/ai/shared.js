@@ -58,23 +58,41 @@ export const RESULT_SHAPE = `- repoId: number (the id field)
 - flags: string[] (e.g. ["no-description", "is-fork", "stale", "good-readme"])`;
 
 /**
- * Parse raw provider text into a normalized RepoAiResult[].
- * Profile repo results have suggestDeletion and suggestMakePrivate force-cleared,
- * regardless of what the provider returned.
- * Invalid JSON falls back to neutral per-repo results rather than failing.
+ * Parse raw provider text into a normalized RepoAiResult[], or return null if
+ * the text is unparseable or carries no results array (a response with no JSON
+ * object counts as a failure, not an empty success). Callers decide on null.
+ * Profile repo results have suggestDeletion and suggestMakePrivate force-cleared.
+ * Results are accepted only when repoId matches a repo in the batch; unmatched
+ * rows fall back to case-insensitive repoName match, then are dropped.
  */
 export function normalizeResults(text, repos) {
   const typeMap = new Map(
     repos.map(r => [r.id, VALID_REPO_TYPES.has(r.repoType) ? r.repoType : 'unknown'])
   );
+  const idSet   = new Set(repos.map(r => r.id));
+  const nameMap = new Map(repos.map(r => [r.name.toLowerCase(), r.id]));
 
   try {
     const parsed = JSON.parse(text);
-    const results = Array.isArray(parsed.results) ? parsed.results : [];
-    return results.map(r => {
-      const isProfile = typeMap.get(Number(r.repoId)) === 'profile_repo';
-      return {
-        repoId:                Number(r.repoId),
+    if (!Array.isArray(parsed?.results)) return null;
+    const rows = parsed.results;
+    const normalized = [];
+    for (const r of rows) {
+      const numId = Number(r.repoId);
+      let resolvedId;
+      if (idSet.has(numId)) {
+        resolvedId = numId;
+      } else {
+        const nameLower = String(r.repoName ?? '').toLowerCase();
+        if (nameLower && nameMap.has(nameLower)) {
+          resolvedId = nameMap.get(nameLower);
+        } else {
+          continue;
+        }
+      }
+      const isProfile = typeMap.get(resolvedId) === 'profile_repo';
+      normalized.push({
+        repoId:                resolvedId,
         repoName:              String(r.repoName ?? ''),
         skillRating:           clamp(Number(r.skillRating ?? 50)),
         professionalismRating: clamp(Number(r.professionalismRating ?? 50)),
@@ -82,24 +100,12 @@ export function normalizeResults(text, repos) {
         suggestMakePrivate:    isProfile ? false : Boolean(r.suggestMakePrivate),
         summary:               String(r.summary ?? ''),
         flags:                 Array.isArray(r.flags) ? r.flags.map(String) : [],
-      };
-    });
+      });
+    }
+    return normalized;
   } catch {
-    return repos.map(r => neutralResult(r));
+    return null;
   }
-}
-
-function neutralResult(repo) {
-  return {
-    repoId: repo.id,
-    repoName: repo.name,
-    skillRating: 50,
-    professionalismRating: 50,
-    suggestDeletion: false,
-    suggestMakePrivate: false,
-    summary: 'Analysis unavailable.',
-    flags: [],
-  };
 }
 
 function clamp(n) {

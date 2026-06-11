@@ -35,6 +35,14 @@ router.get('/status', (req, res) => {
   res.json(getProviderStatus());
 });
 
+const BATCH_SIZE = 12;
+
+function chunkArray(arr, size) {
+  const chunks = [];
+  for (let i = 0; i < arr.length; i += size) chunks.push(arr.slice(i, i + size));
+  return chunks;
+}
+
 router.post('/analyse', async (req, res, next) => {
   try {
     const repos = req.body?.repos;
@@ -55,8 +63,44 @@ router.post('/analyse', async (req, res, next) => {
       return res.json({ results: [] });
     }
 
-    const results = await provider.analyzeRepos(publicOnly);
-    res.json({ results });
+    const batches = chunkArray(publicOnly, BATCH_SIZE);
+    const allResults = [];
+    const warnings = [];
+    let successCount = 0;
+    let firstError = null;
+
+    for (let i = 0; i < batches.length; i++) {
+      const batch = batches[i];
+      try {
+        const batchResults = await provider.analyzeRepos(batch);
+        if (batchResults === null) {
+          warnings.push(`Batch ${i + 1} of ${batches.length} returned unparseable output (${batch.length} repos skipped).`);
+        } else {
+          allResults.push(...batchResults);
+          successCount++;
+        }
+      } catch (err) {
+        if (!firstError) firstError = err;
+        warnings.push(`Batch ${i + 1} of ${batches.length} failed (${batch.length} repos skipped).`);
+      }
+    }
+
+    // When nothing succeeded, surface the first batch's actual error so an
+    // actionable cause (e.g. a missing API key, 503) reaches the user instead
+    // of a generic message. These provider messages are already sanitized and
+    // never contain the token. Fall back to 502 for pure parse failures.
+    if (successCount === 0) {
+      return res.status(firstError?.status ?? 502).json({
+        success: false,
+        message: firstError?.message
+          ? `AI analysis failed: ${firstError.message}`
+          : 'AI analysis failed: all batches returned unparseable output.',
+      });
+    }
+
+    const response = { results: allResults };
+    if (warnings.length > 0) response.warnings = warnings;
+    res.json(response);
   } catch (err) {
     next(err);
   }

@@ -136,6 +136,9 @@ type DeleteState = 'idle' | 'confirming' | 'executing' | 'results';
         <p class="ai-advisory">
           AI analysis is advisory only. Ratings and suggestions are guides; you make all final decisions.
         </p>
+        @for (warning of aiWarnings(); track warning) {
+          <p class="ai-advisory ai-advisory--warning">{{ warning }}</p>
+        }
       }
       @if (aiState() === 'error') {
         <p class="ai-advisory ai-advisory--error">AI analysis failed. Check your AI_PROVIDER setting in .env.</p>
@@ -385,7 +388,8 @@ type DeleteState = 'idle' | 'confirming' | 'executing' | 'results';
       border-radius: var(--radius-md);
       background: var(--bg-elevated);
     }
-    .ai-advisory--error { color: var(--color-danger-fg); border-color: var(--color-danger); background: var(--color-danger-bg); }
+    .ai-advisory--error   { color: var(--color-danger-fg);  border-color: var(--color-danger);  background: var(--color-danger-bg); }
+    .ai-advisory--warning { color: var(--color-warning-fg); border-color: var(--color-warning); background: var(--color-warning-bg); }
     @media (max-width: 1080px) {
       .repos-page__controls {
         grid-template-columns: minmax(var(--controls-search-min-width), 1fr) var(--controls-sort-width) var(--controls-sort-width);
@@ -440,6 +444,7 @@ export class ReposComponent implements OnInit {
   readonly pendingAction      = signal<VisibilityAction | null>(null);
   readonly deleteToggleEnabled = signal<boolean>(false);
   readonly aiEnabled          = signal<boolean>(false);
+  readonly aiWarnings         = signal<string[]>([]);
 
   readonly scoreMap = computed<Record<number, RepoScore>>(() => {
     const login = this.ownerLogin();
@@ -569,14 +574,16 @@ export class ReposComponent implements OnInit {
       : allPublic;
     if (toAnalyse.length === 0) return;
     this.aiState.set('loading');
+    this.aiWarnings.set([]);
     const scores = this.scoreMap();
     try {
       const reposWithType = toAnalyse.map(r => ({
         ...r,
         repoType: scores[r.id]?.classification.type ?? 'unknown' as const,
       }));
-      const { results } = await this.aiApi.analyzeRepos(reposWithType);
+      const { results, warnings } = await this.aiApi.analyzeRepos(reposWithType);
       this.aiResults.set(buildAiResultMap(results, scores));
+      this.aiWarnings.set(warnings ?? []);
       this.aiState.set('done');
     } catch {
       this.aiState.set('error');

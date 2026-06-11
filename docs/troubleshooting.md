@@ -57,6 +57,11 @@ The dashboard shows this when requests to `http://localhost:3000` fail.
 **A repo shows no AI badge after analysis**
 - Private repos never get AI results. The profile repo never shows an AI delete suggestion; it is protected.
 
+**"Batch N of M returned unparseable output" warning appears after analysis**
+- The AI model returned output for that batch that the server could not parse (malformed or truncated JSON).
+- Results from all other batches still display normally. Repos from the affected batch simply show no AI panel, which is the same as unanalysed repos.
+- Click Analyse Public Repos again to retry. If the warning persists with Anthropic, the model response may be getting truncated; consider reducing how many repos you analyse at once by selecting a subset before clicking Analyse.
+
 ---
 
 ## Deletion

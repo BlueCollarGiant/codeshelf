@@ -21,9 +21,9 @@ export class AiApiService {
     return firstValueFrom(this.http.get<AiProviderStatus>(`${API}/ai/status`));
   }
 
-  analyzeRepos(repos: RepoWithType[]): Promise<{ results: RepoAiResult[] }> {
+  analyzeRepos(repos: RepoWithType[]): Promise<{ results: RepoAiResult[]; warnings?: string[] }> {
     return firstValueFrom(
-      this.http.post<{ results: RepoAiResult[] }>(`${API}/ai/analyse`, { repos })
+      this.http.post<{ results: RepoAiResult[]; warnings?: string[] }>(`${API}/ai/analyse`, { repos })
     );
   }
 }

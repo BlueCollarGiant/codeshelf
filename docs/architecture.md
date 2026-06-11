@@ -100,9 +100,13 @@ Both return `{ results: [{ fullName, success, message?, ...}] }`. The delete loo
 
 | Endpoint | Body | Notes |
 |---|---|---|
-| `POST /api/ai/analyse` | `{ repos: SafeGitHubRepo[] }` | Returns `{ results: RepoAiResult[] }`. Returns **503** when AI is disabled. |
+| `POST /api/ai/analyse` | `{ repos: SafeGitHubRepo[] }` | Returns `{ results: RepoAiResult[], warnings?: string[] }`. Returns **503** when AI is disabled. When every batch fails it returns the first batch's error: the provider's own status when present (e.g. **503** for a missing key), otherwise **502** for unparseable output. |
 
-**AI boundary (enforced in backend code):** before any provider is called, the backend filters the submitted repos to `private === false`. Every provider then strips repos down to a single shared AI-safe field subset (`toAiSafePayload()` in [backend/src/ai/shared.js](../backend/src/ai/shared.js): name, description, language, topics, stars, forks, pushed date, fork/archived flags, license presence, and repo type (validated against the known type set; client-supplied for prompt context only, not a security boundary)). Profile repo results have `suggestDeletion` and `suggestMakePrivate` force-cleared server-side in `normalizeResults()`, regardless of what the model returns. AI never receives the GitHub token, `.env` values, or private repo data, and has no path to any write endpoint.
+**Response shape:** `results` is the array of per-repo AI results. `warnings` is optional; it appears only when one or more batches could not be parsed, and each entry names the batch and how many repos were skipped (e.g. `"Batch 3 of 5 returned unparseable output (12 repos skipped)."`). Repos with no surviving result simply show no AI panel, which is the normal behavior for unanalysed repos.
+
+**Batching:** after the `private === false` filter, repos are split into chunks of 12 and each chunk is sent to the provider sequentially. Provider code is stateless and receives only its chunk; batch size is the only change at the call site.
+
+**AI boundary (enforced in backend code):** before any provider is called, the backend filters the submitted repos to `private === false`. Every provider then strips repos down to a single shared AI-safe field subset (`toAiSafePayload()` in [backend/src/ai/shared.js](../backend/src/ai/shared.js): name, description, language, topics, stars, forks, pushed date, fork/archived flags, license presence, and repo type (validated against the known type set; client-supplied for prompt context only, not a security boundary)). Profile repo results have `suggestDeletion` and `suggestMakePrivate` force-cleared server-side in `normalizeResults()`, regardless of what the model returns. Result rows are accepted only when `repoId` matches a repo in the batch; unmatched rows fall back to case-insensitive `repoName` match and are dropped if that also fails. AI never receives the GitHub token, `.env` values, or private repo data, and has no path to any write endpoint.
 
 ---
 
