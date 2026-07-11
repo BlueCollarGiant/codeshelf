@@ -14,6 +14,25 @@ function getToken() {
   return token;
 }
 
+function splitFullName(fullName) {
+  if (typeof fullName !== 'string') return null;
+  const parts = fullName.split('/');
+  if (parts.length !== 2 || !parts[0] || !parts[1]) return null;
+  return { owner: parts[0], repo: parts[1] };
+}
+
+export function isOwnedByAuthenticatedUser(fullName, ownerLogin) {
+  const parsed = splitFullName(fullName);
+  if (!parsed || typeof ownerLogin !== 'string' || !ownerLogin.trim()) return false;
+  return parsed.owner.toLowerCase() === ownerLogin.trim().toLowerCase();
+}
+
+function repoApiPath(fullName) {
+  const parsed = splitFullName(fullName);
+  if (!parsed) throw { status: 400, message: `Invalid repository name: ${fullName}.` };
+  return `/repos/${encodeURIComponent(parsed.owner)}/${encodeURIComponent(parsed.repo)}`;
+}
+
 async function githubFetch(path, token) {
   const res = await fetch(`${GITHUB_API}${path}`, { headers: authHeaders(token) });
 
@@ -33,7 +52,7 @@ async function githubFetch(path, token) {
 }
 
 export async function checkTokenStatus() {
-  const token = getToken(); // throws {status:401, tokenPresent:false} if missing
+  const token = getToken();
   const res = await githubFetch('/rate_limit', token);
   const data = await res.json();
 
@@ -52,11 +71,23 @@ export async function getAuthenticatedUser() {
   return await res.json();
 }
 
+export async function getAuthenticatedOwnerLogin() {
+  const user = await getAuthenticatedUser();
+  if (typeof user.login !== 'string' || !user.login.trim()) {
+    throw { status: 502, message: 'GitHub did not return an authenticated account login. Repository actions were blocked.' };
+  }
+  return user.login.trim().toLowerCase();
+}
+
 async function fetchRepoPage(token, page) {
-  const res = await githubFetch(
-    `/user/repos?per_page=100&page=${page}&sort=updated&direction=desc`,
-    token,
-  );
+  const params = new URLSearchParams({
+    affiliation: 'owner',
+    per_page: '100',
+    page: String(page),
+    sort: 'updated',
+    direction: 'desc',
+  });
+  const res = await githubFetch(`/user/repos?${params}`, token);
   const data = await res.json();
   const linkHeader = res.headers.get('link') ?? '';
   const hasNext = linkHeader.includes('rel="next"');
@@ -81,7 +112,7 @@ export async function getAllRepos() {
 
 export async function deleteRepo(fullName) {
   const token = getToken();
-  const res = await fetch(`${GITHUB_API}/repos/${fullName}`, {
+  const res = await fetch(`${GITHUB_API}${repoApiPath(fullName)}`, {
     method: 'DELETE',
     headers: authHeaders(token),
   });
@@ -97,7 +128,7 @@ export async function deleteRepo(fullName) {
 
 export async function setRepoVisibility(fullName, visibility) {
   const token = getToken();
-  const res = await fetch(`${GITHUB_API}/repos/${fullName}`, {
+  const res = await fetch(`${GITHUB_API}${repoApiPath(fullName)}`, {
     method: 'PATCH',
     headers: { ...authHeaders(token), 'Content-Type': 'application/json' },
     body: JSON.stringify({ private: visibility === 'private' }),
@@ -111,9 +142,19 @@ export async function setRepoVisibility(fullName, visibility) {
   return true;
 }
 
-export async function setVisibilityForAll(repos) {
+export async function setVisibilityForAll(repos, ownerLogin) {
   const results = [];
   for (const { fullName, visibility } of repos) {
+    if (!isOwnedByAuthenticatedUser(fullName, ownerLogin)) {
+      results.push({
+        fullName,
+        visibility,
+        success: false,
+        message: 'CodeShelf only changes repositories owned by the authenticated GitHub account.',
+      });
+      continue;
+    }
+
     try {
       await setRepoVisibility(fullName, visibility);
       results.push({ fullName, visibility, success: true });
@@ -127,11 +168,21 @@ export async function setVisibilityForAll(repos) {
 export async function deleteAll(repos, ownerLogin) {
   const results = [];
   for (const { fullName } of repos) {
-    const repoName = fullName.split('/')[1]?.toLowerCase();
-    if (ownerLogin && repoName === ownerLogin) {
+    if (!isOwnedByAuthenticatedUser(fullName, ownerLogin)) {
+      results.push({
+        fullName,
+        success: false,
+        message: 'CodeShelf only deletes repositories owned by the authenticated GitHub account.',
+      });
+      continue;
+    }
+
+    const repoName = splitFullName(fullName)?.repo.toLowerCase();
+    if (repoName === ownerLogin.toLowerCase()) {
       results.push({ fullName, success: false, message: 'This is your GitHub profile repo. CodeShelf will not delete it.' });
       continue;
     }
+
     try {
       await deleteRepo(fullName);
       results.push({ fullName, success: true });
